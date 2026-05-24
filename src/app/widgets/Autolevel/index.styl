@@ -1,0 +1,751 @@
+.autolevel {
+  position: relative;
+  padding: 10px;
+  color: #333;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+}
+
+.headerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 5px;
+  background-color: #f5f5f5;
+  border-radius: 4px 4px 0 0;
+  padding-right: 5px;
+}
+
+.mainTabs {
+  display: flex;
+  flex: 1;
+}
+
+.mainTab {
+  flex: 0 0 auto;
+  background: transparent;
+  border: none;
+  border-right: 1px solid #ddd;
+  color: #337ab7;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-weight: normal;
+  outline: none;
+}
+
+.mainTab:last-child {
+  border-right: none;
+}
+
+.mainTab:hover:not(.activeTab) {
+  background: #eee;
+  color: #23527c;
+}
+
+.activeTab {
+  background: #fff;
+  color: #333;
+  font-weight: bold;
+  border-bottom: 1px solid #fff;
+  margin-bottom: -1px;
+  box-shadow: 0 -2px 0 #337ab7 inset;
+}
+
+.btnIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  min-height: 0;
+  padding: 0;
+  cursor: pointer;
+  color: #777;
+  font-size: 14px;
+  border-radius: 3px;
+}
+
+.btnIcon:hover,
+.activeIcon {
+  color: #333;
+  background-color: rgba(0, 0, 0, .05);
+}
+
+.savedMsg {
+  color: #4cae4c;
+  font-weight: bold;
+  font-size: 11px;
+  margin-right: 10px;
+  opacity: 0;
+  transition: opacity .5s ease-in-out;
+}
+
+.show {
+  opacity: 1;
+}
+
+.settings {
+  background-color: #fcfcfc;
+  border: 1px solid #ddd;
+  border-top: none;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 0 0 4px 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .05);
+}
+
+.settingsGroup {
+  margin-bottom: 10px;
+}
+
+.settingsGroup h5,
+.toolChangeHeader h5 {
+  margin: 0 0 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.toolChangeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 3px;
+  margin-bottom: 5px;
+}
+
+.toolChangeHeader h5 {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 5px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  font-weight: normal;
+  font-size: 11px;
+  color: #777;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.field span {
+  margin-bottom: 2px;
+}
+
+.field input {
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 2px 6px;
+  font-size: 12px;
+  color: #555;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  box-sizing: border-box;
+}
+
+.field input:focus {
+  border-color: #66afe9;
+  outline: 0;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+}
+
+.field input.isInvalid {
+  border-color: #a94442;
+  background-color: #f2dede;
+}
+
+.field input.isInvalid:focus {
+  border-color: #843534;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;
+}
+
+.tooltipIcon {
+  display: inline-block;
+  margin-left: 4px;
+  color: #999;
+  cursor: help;
+  font-size: 11px;
+}
+
+.settingsActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px;
+}
+
+.saved {
+  color: #4cae4c;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 16px;
+  margin-bottom: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 16px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #fff;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+  background-color: #337ab7;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(14px);
+}
+
+.widgetContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.panel {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+  color: #333;
+}
+
+.skewStatus {
+  background-color: #eef;
+  color: #337ab7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: .9em;
+  border: 1px solid #dde;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.btn,
+.primaryButton {
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 400;
+  color: #fff;
+  font-size: 13px;
+  user-select: none;
+}
+
+.primaryButton,
+.btnPrimary {
+  background-color: #337ab7;
+  border-color: #2e6da4;
+}
+
+.primaryButton:hover,
+.btnPrimary:hover {
+  background-color: #286090;
+  border-color: #204d74;
+}
+
+.btnSecondary {
+  background-color: #5bc0de;
+  border-color: #46b8da;
+}
+
+.btnSecondary:hover {
+  background-color: #31b0d5;
+  border-color: #269abc;
+}
+
+.btnDanger {
+  background-color: #d9534f;
+  border-color: #d43f3a;
+  color: #fff;
+}
+
+.btnDanger:hover {
+  background-color: #c9302c;
+  border-color: #ac2925;
+}
+
+.btnExpand {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.buttonRow button:disabled,
+.probeGrid button:disabled {
+  background-color: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+  border-color: #ddd;
+}
+
+.visualizerContainer {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  position: relative;
+  overflow: hidden;
+  max-height: 550px;
+  margin: 10px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visualizerContainer:before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  background-image:
+    linear-gradient(#ececec 1px, transparent 1px),
+    linear-gradient(90deg, #ececec 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.meshCanvas {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.meshCanvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.meshCanvas canvas:active {
+  cursor: grabbing;
+}
+
+.visualizerEmpty {
+  position: relative;
+  color: #bbb;
+  font-size: 12px;
+}
+
+.statusText {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #777;
+  text-align: center;
+}
+
+.meshStats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background: rgba(255, 255, 255, .85);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.meshStats strong,
+.meshStats span {
+  display: block;
+}
+
+.meshStats span {
+  color: #777;
+  font-size: 10px;
+}
+
+.probeModeBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 5px 8px;
+  color: #777;
+  font-size: 12px;
+}
+
+.probeModeBar button {
+  min-width: 58px;
+  height: 26px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #337ab7;
+  font-size: 12px;
+}
+
+.probeModeBar button:hover {
+  background: #eee;
+  color: #23527c;
+}
+
+.probeModeBar .selectedMode {
+  color: #fff;
+  background: #337ab7;
+  border-color: #2e6da4;
+}
+
+.probeAxisBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 5px 8px;
+  color: #777;
+  font-size: 12px;
+}
+
+.probeAxisBar button {
+  min-width: 40px;
+  height: 26px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #337ab7;
+  font-size: 12px;
+}
+
+.probeAxisBar button:hover {
+  background: #eee;
+  color: #23527c;
+}
+
+.probeAxisBar .selectedMode {
+  color: #fff;
+  background: #337ab7;
+  border-color: #2e6da4;
+}
+
+.probeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+  padding: 0 5px 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.probeGrid button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 50px;
+  padding: 5px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.probeGrid button:hover:not(:disabled) {
+  background-color: #e6e6e6;
+  border-color: #adadad;
+}
+
+.probeGrid button:active:not(:disabled) {
+  background-color: #e6e6e6;
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+  outline: 0;
+}
+
+.probeGrid .btnCenter {
+  color: #fff;
+  background-color: #f0ad4e;
+  border-color: #eea236;
+}
+
+.probeGrid .btnCenter:hover:not(:disabled) {
+  color: #fff;
+  background-color: #ec971f;
+  border-color: #d58512;
+}
+
+.btnShape {
+  font-size: 10px;
+  flex-direction: column;
+  gap: 2px;
+  color: #555;
+}
+
+.btnShape i {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.fullProbeButton {
+  grid-column: span 4;
+}
+
+.icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footerStatus {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  color: #777;
+  font-size: 12px;
+}
+
+.footerStatus span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.stopLink {
+  border: 0;
+  background: transparent;
+  color: #337ab7;
+  padding: 0;
+}
+
+.stopLink:disabled {
+  color: #aaa;
+}
+
+.modalOverlay {
+  position: fixed;
+  z-index: 1050;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .5);
+}
+
+.modal {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+  max-width: 90%;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: #333;
+}
+
+.modalHeader {
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.modalBody {
+  font-size: 14px;
+  color: #555;
+  text-align: center;
+}
+
+.instructionImg {
+  max-height: 200px;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto 10px;
+  display: block;
+  border: 1px solid #eee;
+}
+
+.toolWarning {
+  margin-top: 15px;
+  text-align: left;
+  display: inline-block;
+}
+
+.toolWarning strong:last-child {
+  color: #d9534f;
+}
+
+.probeWarning {
+  margin: 12px 0 0;
+  padding: 10px;
+  border: 1px solid #ebccd1;
+  border-radius: 4px;
+  background: #f2dede;
+  color: #a94442;
+  text-align: left;
+  font-size: 12px;
+}
+
+.progressContainer {
+  width: 100%;
+  height: 10px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 5px;
+  background-color: #eee;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: #337ab7;
+  transition: width .3s ease;
+}
+
+.skewSpacing {
+  margin-top: 12px;
+  padding: 8px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  background: #f9f9f9;
+  font-size: 12px;
+}
+
+.skewResult {
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 4px;
+  background: #f9f9f9;
+  text-align: left;
+}
+
+.skewResult div + div {
+  margin-top: 4px;
+}
+
+.modalIcon {
+  font-size: 64px;
+  margin: 20px;
+  color: #555;
+}
+
+.modalText {
+  margin: 15px 0;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.modalButton {
+  padding: 8px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 14px;
+  color: #333;
+}
+
+.modalPrimary {
+  background-color: #337ab7;
+  color: #fff;
+  border-color: #2e6da4;
+}
+
+.modalPrimary:hover {
+  background-color: #286090;
+}
+
+.modalDanger {
+  background-color: #d9534f;
+  color: #fff;
+  border-color: #d43f3a;
+}
+
+.modalDanger:hover {
+  background-color: #c9302c;
+}
+
+.hiddenTemplates {
+  display: none;
+}

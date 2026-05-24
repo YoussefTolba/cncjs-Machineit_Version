@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>CNCjs Pendant</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="topbar-title">
+        <img class="machine-it-logo" src="images/machine-it-logo.png" alt="Machine it">
+        <div>
+          <h1>CNCjs Pendant</h1>
+          <p id="connectionStatus">Disconnected</p>
+        </div>
+      </div>
+      <button id="connectButton" class="small primary">Connect</button>
+    </header>
+
+    <section id="signinPanel" class="panel hidden">
+      <label>
+        Username
+        <input id="username" autocomplete="username">
+      </label>
+      <label>
+        Password
+        <input id="password" type="password" autocomplete="current-password">
+      </label>
+      <button id="signinButton" class="primary">Sign In</button>
+    </section>
+
+    <section class="status-grid">
+      <div class="status-card">
+        <span>Port</span>
+        <strong id="portStatus">None</strong>
+      </div>
+      <div class="status-card">
+        <span>State</span>
+        <strong id="machineState">Unknown</strong>
+      </div>
+      <div class="status-card">
+        <span>Step</span>
+        <strong id="stepLabel">1 mm</strong>
+      </div>
+    </section>
+
+    <section class="position">
+      <div><span>X</span><strong id="posX">0.000</strong></div>
+      <div><span>Y</span><strong id="posY">0.000</strong></div>
+      <div><span>Z</span><strong id="posZ">0.000</strong></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">Serial Port</div>
+      <div class="row">
+        <select id="portSelect"></select>
+        <button id="refreshPortsButton" class="small">Refresh</button>
+      </div>
+      <div class="row">
+        <select id="baudSelect">
+          <option>115200</option>
+          <option>57600</option>
+          <option>38400</option>
+          <option>19200</option>
+          <option>9600</option>
+        </select>
+        <button id="openPortButton" class="small primary">Open</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">Jog</div>
+      <div class="jog-grid master-keypad">
+        <button data-jog="X- Y+" class="jog-key diag" aria-label="Move X negative Y positive" title="Move X- Y+">&nwarr;</button>
+        <button data-jog="Y+" class="jog-key axis-key">Y<span>+</span></button>
+        <button data-jog="X+ Y+" class="jog-key diag" aria-label="Move X positive Y positive" title="Move X+ Y+">&nearr;</button>
+        <button data-jog="Z+" class="jog-key axis-key">Z<span>+</span></button>
+        <button data-jog="X-" class="jog-key axis-key">X<span>-</span></button>
+        <button data-gcode="G0 X0 Y0" class="jog-key jog-zero">X<sub>0</sub>Y<sub>0</sub></button>
+        <button data-jog="X+" class="jog-key axis-key">X<span>+</span></button>
+        <button data-gcode="G0 Z0" class="jog-key jog-zero">Z<sub>0</sub></button>
+        <button data-jog="X- Y-" class="jog-key diag" aria-label="Move X negative Y negative" title="Move X- Y-">&swarr;</button>
+        <button data-jog="Y-" class="jog-key axis-key">Y<span>-</span></button>
+        <button data-jog="X+ Y-" class="jog-key diag" aria-label="Move X positive Y negative" title="Move X+ Y-">&searr;</button>
+        <button data-jog="Z-" class="jog-key axis-key">Z<span>-</span></button>
+      </div>
+      <div class="jog-step-row">
+        <button type="button" class="step-nudge" data-step-delta="-1" aria-label="Decrease step size">-</button>
+        <div class="jog-units">G21 (mm)</div>
+        <select id="stepSelect" class="step-select" aria-label="Jog step size">
+          <option value="0.001">0.001 mm</option>
+          <option value="0.002">0.002 mm</option>
+          <option value="0.003">0.003 mm</option>
+          <option value="0.005">0.005 mm</option>
+          <option value="0.01">0.01 mm</option>
+          <option value="0.02">0.02 mm</option>
+          <option value="0.03">0.03 mm</option>
+          <option value="0.05">0.05 mm</option>
+          <option value="0.1">0.1 mm</option>
+          <option value="0.2">0.2 mm</option>
+          <option value="0.3">0.3 mm</option>
+          <option value="0.5">0.5 mm</option>
+          <option value="1">1 mm</option>
+          <option value="2">2 mm</option>
+          <option value="3">3 mm</option>
+          <option value="5">5 mm</option>
+          <option value="10">10 mm</option>
+          <option value="20">20 mm</option>
+          <option value="30">30 mm</option>
+          <option value="50">50 mm</option>
+          <option value="100">100 mm</option>
+          <option value="200">200 mm</option>
+          <option value="300">300 mm</option>
+          <option value="500">500 mm</option>
+        </select>
+        <button type="button" class="step-nudge" data-step-delta="1" aria-label="Increase step size">+</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">Zero</div>
+      <div class="button-grid three">
+        <button data-gcode="G10 L20 P1 X0">Set X0</button>
+        <button data-gcode="G10 L20 P1 Y0">Set Y0</button>
+        <button data-gcode="G10 L20 P1 Z0">Set Z0</button>
+        <button data-gcode="G10 L20 P1 X0 Y0">Set XY0</button>
+        <button data-gcode="G10 L20 P1 X0 Y0 Z0">Set XYZ0</button>
+        <button data-gcode="G0 X0 Y0">Go To XY0</button>
+      </div>
+    </section>
+
+    <section class="panel probe-panel">
+      <div class="section-title">Probing</div>
+      <div class="mode-row">
+        <button type="button" class="mode-button active" data-probe-mode="outer">Outer</button>
+        <button type="button" class="mode-button" data-probe-mode="inner">Inner</button>
+      </div>
+      <div class="probe-grid">
+        <button data-probe-type="corner" data-probe-arg="TL" title="Back Left Corner"><span class="probe-icon">&#9484;</span></button>
+        <button data-probe-type="edge" data-probe-arg="Y+" title="Back Edge">T</button>
+        <button data-probe-type="corner" data-probe-arg="TR" title="Back Right Corner"><span class="probe-icon">&#9488;</span></button>
+        <button data-probe-type="z_touchplate" title="Z Touchplate" class="probe-shape"><i class="probe-arrow">&#8595;</i><span>Z Plate</span></button>
+        <button data-probe-type="edge" data-probe-arg="X-" title="Left Edge"><span class="probe-icon">&#9500;</span></button>
+        <button data-probe-type="surface" title="Probe Z Surface" class="probe-center">Z</button>
+        <button data-probe-type="edge" data-probe-arg="X+" title="Right Edge"><span class="probe-icon">&#9508;</span></button>
+        <button data-probe-type="boss" title="Block/Boss Center" class="probe-shape"><i class="probe-square"></i><span id="bossProbeLabel">Block</span></button>
+        <button data-probe-type="corner" data-probe-arg="BL" title="Front Left Corner"><span class="probe-icon">&#9492;</span></button>
+        <button data-probe-type="edge" data-probe-arg="Y-" title="Front Edge"><span class="probe-icon">&#9524;</span></button>
+        <button data-probe-type="corner" data-probe-arg="BR" title="Front Right Corner"><span class="probe-icon">&#9496;</span></button>
+        <button data-probe-type="pocket" title="Hole Center" class="probe-shape"><i class="probe-circle"></i><span>Hole</span></button>
+      </div>
+      <div class="row">
+        <label>
+          Boss Axis
+          <select id="pendantBossAxis">
+            <option value="x">X</option>
+            <option value="y">Y</option>
+          </select>
+        </label>
+        <button data-probe-type="tool_change" class="small">Tool Change</button>
+      </div>
+      <details class="probe-settings">
+        <summary>Probe Settings</summary>
+        <div class="settings-grid">
+          <label>Probe Dia<input id="probeDia" type="number" step="0.01"></label>
+          <label>Deflection<input id="probeDeflection" type="number" step="0.01"></label>
+          <label>Retract<input id="retract" type="number" step="0.01"></label>
+          <label>Max Travel<input id="maxTravel" type="number" step="0.01"></label>
+          <label>Safe Z<input id="safeZ" type="number" step="0.01"></label>
+          <label>Slow Feed<input id="feedSlow" type="number" step="0.01"></label>
+          <label>Fast Feed<input id="feedFast" type="number" step="0.01"></label>
+          <label>Plate Thick.<input id="plateThickness" type="number" step="0.01"></label>
+          <label>Corner Depth<input id="probeDepth" type="number" step="0.01"></label>
+          <label>Stock X<input id="sizeX" type="number" step="0.01"></label>
+          <label>Stock Y<input id="sizeY" type="number" step="0.01"></label>
+          <label>Travel Speed<input id="travelSpeed" type="number" step="0.01"></label>
+        </div>
+      </details>
+      <pre id="probeStatus" class="probe-status">READY</pre>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">Machine</div>
+      <div class="button-grid two">
+        <button data-command="homing" class="primary">Home Machine</button>
+        <button data-command="unlock">Unlock</button>
+        <button data-command-args='["gcode", ["G53 G0 Z-5", "%wait", "$HX"]]'>Home X</button>
+        <button data-command-args='["gcode", ["G53 G0 Z-5", "%wait", "$HY"]]'>Home Y</button>
+        <button data-command-args='["gcode", ["$HZ"]]'>Home Z</button>
+        <button data-command="gcode:start">Cycle Start</button>
+        <button data-command="gcode:resume">Resume</button>
+        <button data-command="feedhold">Feed Hold</button>
+        <button data-command-args='["gcode:stop", {"force": true}]' class="danger">Abort Job</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">Custom Commands</div>
+      <div id="customCommands" class="custom-command-list">
+        <div class="empty-note">No commands loaded</div>
+      </div>
+      <button id="refreshCommandsButton" class="small">Refresh Commands</button>
+    </section>
+
+    <section class="panel log-panel">
+      <div class="section-title">Log</div>
+      <pre id="log"></pre>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="probing.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
