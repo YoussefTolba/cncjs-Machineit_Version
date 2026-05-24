@@ -324,11 +324,58 @@ p {
   gap: 8px;
 }
 
+.tab-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
 .mode-button.active {
   background: #337ab7;
   border-color: #2e6da4;
   color: #fff;
   box-shadow: none;
+}
+
+.autolevel-tab {
+  display: grid;
+  gap: 10px;
+}
+
+.mini-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f7f7f7;
+}
+
+.mini-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #333;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mini-panel-title strong {
+  flex: 0 0 auto;
+  color: #337ab7;
+  font-size: 12px;
+}
+
+.mesh-stats {
+  min-height: 38px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .probe-grid {
@@ -401,6 +448,13 @@ p {
   margin-top: 8px;
 }
 
+.settings-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .custom-command-list {
   display: grid;
   gap: 8px;
@@ -440,9 +494,125 @@ p {
   font-size: 12px;
 }
 
+.modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-window {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(100%, 520px);
+  max-height: calc(100vh - 24px);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid #ddd;
+  background: #f6f7f7;
+  color: #333;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal-body {
+  overflow: auto;
+  padding: 14px;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.modal-body img {
+  display: block;
+  width: 100%;
+  max-height: 190px;
+  object-fit: contain;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f7f7f7;
+}
+
+.modal-body pre {
+  max-height: 210px;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f7f7f7;
+  white-space: pre-wrap;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+
+.modal-warning,
+.tool-warning,
+.skew-result,
+.running-progress {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  background: #fcf8e3;
+  color: #5c4b16;
+  font-size: 13px;
+}
+
+.tool-warning {
+  background: #f2dede;
+  color: #7a2725;
+}
+
+.skew-result {
+  background: #eef7fb;
+  color: #245269;
+}
+
+.progress-shell {
+  height: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e5e5;
+}
+
+.progress-fill {
+  width: 0;
+  height: 100%;
+  background: #337ab7;
+}
+
+.modal-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #ddd;
+  background: #f6f7f7;
+}
+
 @media (max-width: 380px) {
   .button-grid.three {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modal-footer,
+  .settings-actions {
+    grid-template-columns: 1fr;
   }
 
   .status-card strong {

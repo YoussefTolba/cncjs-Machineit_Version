@@ -504,7 +504,7 @@ class AutolevelWidget extends PureComponent {
     }
 
     const probeRadius = (Number(settings.probeDia) / 2) - Number(settings.probeDeflection);
-    if (!Number.isFinite(probeRadius) || probeRadius <= 0) {
+    if (!Number.isFinite(probeRadius) || probeRadius < 0) {
       invalidFields.push('probeDia', 'probeDeflection');
     }
 

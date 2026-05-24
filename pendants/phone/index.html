@@ -132,6 +132,39 @@
     </section>
 
     <section class="panel probe-panel">
+      <div class="section-title">Autolevel</div>
+      <div class="tab-row">
+        <button type="button" class="mode-button active" data-autolevel-tab="compensation">Compensation</button>
+        <button type="button" class="mode-button" data-autolevel-tab="probing">Probing</button>
+      </div>
+      <div id="autolevelCompensation" class="autolevel-tab">
+        <div class="mini-panel">
+          <div class="mini-panel-title">
+            <span>Skew Compensation</span>
+            <strong id="skewStatus">Skew: 0.000&deg;</strong>
+          </div>
+          <div class="button-grid three">
+            <button type="button" data-autolevel-action="measure-skew">Measure Skew</button>
+            <button type="button" data-autolevel-action="clear-skew" class="danger">Clear</button>
+            <button type="button" data-autolevel-action="apply-skew">Apply Skew</button>
+          </div>
+        </div>
+        <div class="mini-panel">
+          <div class="mini-panel-title">
+            <span>Surface Map</span>
+            <strong id="meshStatus">No mesh data</strong>
+          </div>
+          <div class="button-grid three">
+            <button type="button" data-autolevel-action="probe-mesh" class="primary">Probe Mesh</button>
+            <button type="button" data-autolevel-action="clear-mesh" class="danger">Clear</button>
+            <button type="button" data-autolevel-action="apply-mesh">Apply Mesh</button>
+          </div>
+          <div id="meshStats" class="mesh-stats">No mesh data.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel probe-panel">
       <div class="section-title">Probing</div>
       <div class="mode-row">
         <button type="button" class="mode-button active" data-probe-mode="outer">Outer</button>
@@ -164,6 +197,9 @@
       <details class="probe-settings">
         <summary>Probe Settings</summary>
         <div class="settings-grid">
+          <label>Height<input id="height" type="number" step="0.01"></label>
+          <label>Margin<input id="margin" type="number" step="0.01"></label>
+          <label>Grid Size<input id="grid" type="number" step="1"></label>
           <label>Probe Dia<input id="probeDia" type="number" step="0.01"></label>
           <label>Deflection<input id="probeDeflection" type="number" step="0.01"></label>
           <label>Retract<input id="retract" type="number" step="0.01"></label>
@@ -172,10 +208,19 @@
           <label>Slow Feed<input id="feedSlow" type="number" step="0.01"></label>
           <label>Fast Feed<input id="feedFast" type="number" step="0.01"></label>
           <label>Plate Thick.<input id="plateThickness" type="number" step="0.01"></label>
+          <label>Skew Spacing<input id="probeSpacing" type="number" step="0.01"></label>
           <label>Corner Depth<input id="probeDepth" type="number" step="0.01"></label>
           <label>Stock X<input id="sizeX" type="number" step="0.01"></label>
           <label>Stock Y<input id="sizeY" type="number" step="0.01"></label>
+          <label>Tool Probe X<input id="toolProbeX" type="number" step="0.01"></label>
+          <label>Tool Probe Y<input id="toolProbeY" type="number" step="0.01"></label>
+          <label>Tool Probe Z<input id="toolProbeZ" type="number" step="0.01"></label>
+          <label>Safe Z (Mach)<input id="safeZMachine" type="number" step="0.01"></label>
           <label>Travel Speed<input id="travelSpeed" type="number" step="0.01"></label>
+        </div>
+        <div class="settings-actions">
+          <button type="button" data-autolevel-action="save-settings" class="small primary">Save Settings</button>
+          <button type="button" data-autolevel-action="refresh" class="small">Refresh</button>
         </div>
       </details>
       <pre id="probeStatus" class="probe-status">READY</pre>
@@ -209,6 +254,17 @@
       <pre id="log"></pre>
     </section>
   </main>
+
+  <div id="probeModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-window">
+      <div id="modalTitle" class="modal-header">Probe</div>
+      <div id="modalBody" class="modal-body"></div>
+      <div class="modal-footer">
+        <button id="modalCancel" type="button">Cancel</button>
+        <button id="modalConfirm" type="button" class="primary">Run</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="probing.js"></script>

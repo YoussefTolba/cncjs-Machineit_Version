@@ -2,6 +2,9 @@
   'use strict';
 
   var defaultSettings = {
+    height: 2,
+    margin: 10,
+    grid: 3,
     probeDia: 1.92,
     sizeX: 50,
     sizeY: 50,
@@ -12,12 +15,14 @@
     feedSlow: 50,
     feedFast: 200,
     plateThickness: 0.5,
+    probeSpacing: 50,
     probeDepth: 3,
     toolProbeX: 618.5,
     toolProbeY: 25,
     toolProbeZ: 0,
     safeZMachine: 0,
-    travelSpeed: 500
+    travelSpeed: 500,
+    showToolChange: false
   };
 
   function getParams(settings) {
@@ -32,6 +37,7 @@
       safeZ: Number(s.safeZ) || 0,
       sizeX: Number(s.sizeX) || 0,
       sizeY: Number(s.sizeY) || 0,
+      spacing: Number(s.probeSpacing) || 0,
       probeDepth: Number(s.probeDepth) || 0,
       fast: Number(s.feedFast) || 0,
       slow: Number(s.feedSlow) || 0,
@@ -380,6 +386,7 @@
       if (mode === 'inner') {
         return {
           title: 'Probe Inner ' + arg + ' Edge',
+          modalType: 'inner_edge',
           warning: innerWarning,
           gcode: generateInnerEdgeProbe(arg.charAt(0), arg.charAt(1), params)
         };
@@ -390,6 +397,7 @@
       if (mode === 'inner') {
         return {
           title: 'Probe Inner ' + arg + ' Corner',
+          modalType: 'inner_corner',
           warning: innerWarning,
           gcode: generateInnerCornerProbe(arg, params)
         };
@@ -401,7 +409,7 @@
     }
     if (type === 'boss') {
       if (mode === 'inner') {
-        return { title: 'Probe Inner Pocket Center', warning: innerWarning, gcode: generateInnerPocketProbe(params) };
+        return { title: 'Probe Inner Pocket Center', modalType: 'inner_boss', warning: innerWarning, gcode: generateInnerPocketProbe(params) };
       }
       return { title: 'Probe Block Center (' + bossAxis.toUpperCase() + ')', gcode: generateBlockProbe(bossAxis, params) };
     }

@@ -10,8 +10,23 @@
     step: Number(localStorage.getItem('cncjsPendantStep') || 1),
     connected: false,
     probeMode: localStorage.getItem('cncjsPendantProbeMode') || 'outer',
+    autolevelTab: localStorage.getItem('cncjsPendantAutolevelTab') || 'compensation',
     autolevelSettings: {},
-    customCommands: []
+    customCommands: [],
+    gcodeLoaded: false,
+    meshPoints: [],
+    meshSummary: 'No mesh data.',
+    skewAngle: 0,
+    skewState: {
+      active: false,
+      step: 0,
+      probeCount: 0,
+      spacing: 0,
+      p1: null,
+      p2: null
+    },
+    skewResult: null,
+    modal: null
   };
 
   var $ = function (id) {
@@ -144,7 +159,7 @@
         return;
       }
       line.split('\n').forEach(function (part) {
-        handleAutolevelLine(part.trim());
+        handleSerialLine(part.trim());
       });
     });
   }
@@ -207,6 +222,22 @@
     state.socket.emit.apply(state.socket, ['command', state.port, cmd].concat(args));
   }
 
+  function writeRaw(data) {
+    if (!state.socket || !state.port) {
+      log('No open port');
+      return;
+    }
+    state.socket.emit('write', state.port, data);
+  }
+
+  function sendAutolevelCommand(commandText, status) {
+    writeRaw(commandText + '\n');
+    if (status) {
+      $('probeStatus').textContent = status;
+      log(status);
+    }
+  }
+
   function normalizeGcodeLines(lines) {
     if (Array.isArray(lines)) {
       return lines;
@@ -256,11 +287,76 @@
     if (!state.socket || !state.port) {
       return;
     }
-    state.socket.emit('write', state.port, '(autolevel_fetch_settings)\n');
+    sendAutolevelCommand('(autolevel_get_mesh)', 'Refreshing mesh...');
+    sendAutolevelCommand('(autolevel_fetch_settings)', 'Refreshing settings...');
+    sendAutolevelCommand('(autolevel_skew)', 'Refreshing skew...');
+  }
+
+  function handleSerialLine(line) {
+    if (!line) {
+      return;
+    }
+    if (processSkewProbe(line)) {
+      return;
+    }
+    handleAutolevelLine(line);
   }
 
   function handleAutolevelLine(line) {
     if (line.indexOf('(AL: SETTINGS') !== 0) {
+      if (line.indexOf('(AL: D ') === 0) {
+        handleMeshDataLine(line);
+        return;
+      }
+      if (line.indexOf('(AL: dumping mesh start)') === 0) {
+        state.meshPoints = [];
+        state.meshSummary = 'Receiving mesh data...';
+        renderMeshState();
+        return;
+      }
+      if (line.indexOf('(AL: no mesh data') === 0 || line.indexOf('(AL: no previous autolevel points') === 0) {
+        state.meshPoints = [];
+        state.meshSummary = 'No mesh data.';
+        renderMeshState();
+        return;
+      }
+      if (line.indexOf('(AL: finished)') === 0 || line.indexOf('(AL: dz_avg=') === 0) {
+        state.meshSummary = state.meshPoints.length > 0 ? 'Mesh ready: ' + state.meshPoints.length + ' points' : 'Autolevel complete.';
+        renderMeshState();
+        if (state.modal && state.modal.type === 'running') {
+          openModal({
+            title: 'Probe Complete',
+            type: 'apply-mesh',
+            body: 'Surface mesh generated successfully. Do you want to apply this compensation to your currently loaded G-code?',
+            confirmLabel: 'Apply Mesh',
+            onConfirm: function () {
+              sendAutolevelCommand('(autolevel_apply_mesh)', 'Applying mesh...');
+            }
+          });
+        }
+        return;
+      }
+      if (line.indexOf('(AL: PROBED ') === 0) {
+        handleProbedPointLine(line);
+        return;
+      }
+      if (line.indexOf('(AL: progress') === 0) {
+        handleProgressLine(line);
+        return;
+      }
+      if (line.indexOf('AL: Current Skew:') >= 0 || line.indexOf('AL: Skew angle set to') >= 0) {
+        handleSkewLine(line);
+      }
+      if (line.indexOf('AL: Loaded File:') >= 0) {
+        var loaded = /Loaded File:\s*(.*)\)/.exec(line);
+        if (loaded) {
+          state.gcodeLoaded = true;
+          log('Loaded file: ' + loaded[1].trim());
+        }
+      }
+      if (line.indexOf('(AL:') === 0) {
+        $('probeStatus').textContent = line.replace(/^\(AL:\s*/, '').replace(/\)$/, '');
+      }
       return;
     }
     var json = line.replace(/^\(AL: SETTINGS\s*/, '').replace(/\)$/, '');
@@ -275,6 +371,63 @@
     } catch (err) {
       log('Could not parse autolevel settings: ' + err.message);
     }
+  }
+
+  function handleMeshDataLine(line) {
+    var points = line
+      .replace(/^\(AL: D\s*/, '')
+      .replace(/\)$/, '')
+      .split(/\s+/)
+      .map(function (part) {
+        return part.split(',').map(Number);
+      })
+      .filter(function (values) {
+        return values.length === 3 && values.every(Number.isFinite);
+      })
+      .map(function (values) {
+        return { x: values[0], y: values[1], z: values[2] };
+      });
+    if (points.length > 0) {
+      state.meshPoints = state.meshPoints.concat(points);
+      state.meshSummary = 'Receiving mesh data... ' + state.meshPoints.length + ' points';
+      renderMeshState();
+    }
+  }
+
+  function handleProbedPointLine(line) {
+    var match = /\(AL: PROBED ([.\+\-\d]+) ([.\+\-\d]+) ([.\+\-\d]+)\)/.exec(line);
+    if (!match) {
+      return;
+    }
+    state.meshPoints.push({
+      x: Number(match[1]),
+      y: Number(match[2]),
+      z: Number(match[3])
+    });
+    state.meshSummary = 'Probing mesh... ' + state.meshPoints.length + ' points';
+    renderMeshState();
+  }
+
+  function handleProgressLine(line) {
+    var match = /progress\s+(\d+)\s+(\d+)/.exec(line);
+    if (!match) {
+      return;
+    }
+    var current = Number(match[1]);
+    var total = Number(match[2]);
+    var message = 'Probing point ' + current + ' / ' + total;
+    state.meshSummary = message;
+    renderMeshState();
+    updateRunningModal(message, current, total);
+  }
+
+  function handleSkewLine(line) {
+    var match = /([.\+\-\d]+)\s*deg/.exec(line);
+    if (!match) {
+      return;
+    }
+    state.skewAngle = Number(match[1]);
+    renderSkewState();
   }
 
   function getProbeSettingsFromInputs() {
@@ -305,9 +458,15 @@
 
   function validateProbeSettings(settings) {
     var invalid = [];
-    var positiveFields = ['probeDia', 'sizeX', 'sizeY', 'maxTravel', 'feedSlow', 'feedFast', 'travelSpeed'];
-    var nonNegativeFields = ['probeDeflection', 'retract', 'safeZ', 'plateThickness', 'probeDepth'];
+    var finiteFields = ['toolProbeX', 'toolProbeY', 'toolProbeZ', 'safeZMachine'];
+    var positiveFields = ['height', 'probeDia', 'sizeX', 'sizeY', 'maxTravel', 'feedSlow', 'feedFast', 'travelSpeed'];
+    var nonNegativeFields = ['margin', 'probeDeflection', 'retract', 'safeZ', 'plateThickness', 'probeSpacing', 'probeDepth'];
 
+    finiteFields.forEach(function (key) {
+      if (!Number.isFinite(Number(settings[key]))) {
+        invalid.push(key);
+      }
+    });
     positiveFields.forEach(function (key) {
       if (!Number.isFinite(Number(settings[key])) || Number(settings[key]) <= 0) {
         invalid.push(key);
@@ -318,7 +477,10 @@
         invalid.push(key);
       }
     });
-    if ((Number(settings.probeDia) / 2) - Number(settings.probeDeflection) <= 0) {
+    if (!Number.isFinite(Number(settings.grid)) || Number(settings.grid) < 2) {
+      invalid.push('grid');
+    }
+    if ((Number(settings.probeDia) / 2) - Number(settings.probeDeflection) < 0) {
       invalid.push('probeDia');
       invalid.push('probeDeflection');
     }
@@ -340,6 +502,193 @@
     }
   }
 
+  function updateAutolevelTab(tab) {
+    state.autolevelTab = tab || state.autolevelTab;
+    localStorage.setItem('cncjsPendantAutolevelTab', state.autolevelTab);
+    Array.prototype.slice.call(document.querySelectorAll('[data-autolevel-tab]')).forEach(function (button) {
+      button.classList.toggle('active', button.getAttribute('data-autolevel-tab') === state.autolevelTab);
+    });
+    if ($('autolevelCompensation')) {
+      $('autolevelCompensation').classList.toggle('hidden', state.autolevelTab !== 'compensation');
+    }
+  }
+
+  function getMeshStats() {
+    if (state.meshPoints.length === 0) {
+      return null;
+    }
+    var zValues = state.meshPoints.map(function (point) {
+      return point.z;
+    });
+    var minZ = Math.min.apply(null, zValues);
+    var maxZ = Math.max.apply(null, zValues);
+    return {
+      count: state.meshPoints.length,
+      minZ: minZ,
+      maxZ: maxZ,
+      range: maxZ - minZ
+    };
+  }
+
+  function renderMeshState() {
+    var stats = getMeshStats();
+    $('meshStatus').textContent = stats ? (stats.count + ' points') : 'No mesh data';
+    $('meshStats').textContent = stats
+      ? stats.count + ' points | min Z ' + stats.minZ.toFixed(3) + ' | max Z ' + stats.maxZ.toFixed(3) + ' | range ' + stats.range.toFixed(3)
+      : state.meshSummary;
+  }
+
+  function renderSkewState() {
+    $('skewStatus').innerHTML = 'Skew: ' + Number(state.skewAngle || 0).toFixed(3) + '&deg;';
+  }
+
+  var modalVisuals = {
+    corner: {
+      image: 'images/instruction-corner.png',
+      text: 'Position above the corner, within Max Travel distance.'
+    },
+    boss: {
+      image: 'images/instruction-boss.png',
+      text: 'Position outside the block: Left side (for X) or Front side (for Y).'
+    },
+    pocket: {
+      image: 'images/instruction-hole.png',
+      text: 'Position inside the hole, approximately centered.'
+    },
+    edge: {
+      image: 'images/instruction-side.png',
+      text: 'Position outside the stock, facing the target edge.'
+    },
+    skew: {
+      image: 'images/instruction-side.png',
+      text: 'Position the probe at the left-most point of the front edge.'
+    },
+    inner_corner: {
+      image: 'images/probing-inner-corner.png',
+      text: 'Position the probe inside the corner, within Max Travel distance of both inside walls.'
+    },
+    inner_boss: {
+      image: 'images/instruction-boss.png',
+      text: 'Position the probe inside the pocket, roughly near the center of the rectangular feature.'
+    },
+    inner_edge: {
+      image: 'images/instruction-side.png',
+      text: 'Position the probe inside the feature, facing the inside wall to probe.'
+    },
+    z_touchplate: {
+      image: 'images/instruction-touchplate.png',
+      text: 'Position directly above the touchplate surface.'
+    },
+    surface: {
+      image: 'images/instruction-corner.png',
+      text: 'Position directly above the workpiece surface.'
+    },
+    tool_change: {
+      image: 'images/change-tool.png',
+      text: 'Make sure the tool setter is in place before starting the tool change sequence.'
+    },
+    autolevel: {
+      image: 'images/instruction-corner.png',
+      text: 'Position the probe above the front-left corner of the mapping area.'
+    }
+  };
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function (char) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char];
+    });
+  }
+
+  function openModal(modal) {
+    state.modal = modal;
+    renderModal();
+  }
+
+  function closeModal() {
+    state.modal = null;
+    $('probeModal').classList.add('hidden');
+  }
+
+  function renderModal() {
+    var modal = state.modal;
+    if (!modal) {
+      closeModal();
+      return;
+    }
+    var visual = modalVisuals[modal.type] || null;
+    var isRunning = modal.type === 'running';
+    var progressPercent = modal.progressTotal
+      ? Math.min(100, Math.max(0, (modal.progressCurrent / modal.progressTotal) * 100))
+      : 0;
+    var body = '';
+
+    if (isRunning) {
+      body += '<div><strong>' + escapeHtml(modal.body) + '</strong></div>';
+      body += '<div class="progress-shell"><div class="progress-fill" style="width:' + progressPercent + '%"></div></div>';
+    }
+    if (visual) {
+      body += '<img src="' + visual.image + '" alt="">';
+      body += '<div>' + escapeHtml(visual.text) + '</div>';
+    }
+    if (modal.type === 'skew') {
+      body += '<div class="running-progress">Skew Spacing: <strong>' + Number(state.autolevelSettings.probeSpacing || 0).toFixed(2) + '</strong> mm</div>';
+    }
+    if (modal.type === 'skew-result' && state.skewResult) {
+      body += '<div class="skew-result">';
+      body += '<div><strong>P1:</strong> X' + state.skewResult.p1.x.toFixed(3) + ' Y' + state.skewResult.p1.y.toFixed(3) + '</div>';
+      body += '<div><strong>P2:</strong> X' + state.skewResult.p2.x.toFixed(3) + ' Y' + state.skewResult.p2.y.toFixed(3) + '</div>';
+      body += '<div><strong>Angle:</strong> ' + state.skewResult.angle.toFixed(4) + '&deg;</div>';
+      body += '</div>';
+    }
+    if (modal.type === 'tool_change') {
+      body += '<div class="tool-warning"><strong>Tool Change Sequence</strong><br>';
+      body += '1. Moves to Tool Probe Location.<br>2. Probes CURRENT tool length.<br>3. Pauses for manual tool change.<br>4. Probes NEW tool length.<br>5. Updates Z offset to match original tool.<br><br>';
+      body += '<strong>WARNING: Ensure tool setter is in place!</strong></div>';
+    }
+    if (modal.warning) {
+      body += '<div class="modal-warning"><strong>WARNING:</strong> ' + escapeHtml(modal.warning) + '</div>';
+    }
+    if (modal.body && !isRunning) {
+      body += modal.preformatted ? '<pre>' + escapeHtml(modal.body) + '</pre>' : '<div class="running-progress">' + escapeHtml(modal.body) + '</div>';
+    }
+
+    $('modalTitle').textContent = modal.title || 'Probe';
+    $('modalBody').innerHTML = body;
+    $('modalConfirm').textContent = isRunning ? 'Stop' : (modal.confirmLabel || 'Run');
+    $('modalConfirm').classList.toggle('danger', isRunning || (modal.type || '').indexOf('clear') === 0);
+    $('modalCancel').classList.toggle('hidden', isRunning);
+    $('probeModal').classList.remove('hidden');
+  }
+
+  function confirmModal() {
+    var modal = state.modal;
+    if (!modal) {
+      return;
+    }
+    if (modal.onConfirm) {
+      modal.onConfirm();
+    }
+    if (modal.closeOnConfirm !== false) {
+      closeModal();
+    }
+  }
+
+  function updateRunningModal(body, progressCurrent, progressTotal) {
+    if (!state.modal || state.modal.type !== 'running') {
+      return;
+    }
+    state.modal.body = body || state.modal.body;
+    state.modal.progressCurrent = progressCurrent || state.modal.progressCurrent;
+    state.modal.progressTotal = progressTotal || state.modal.progressTotal;
+    renderModal();
+  }
+
   function runPendantProbe(type, arg) {
     if (!probing) {
       log('Pendant probing module is not loaded');
@@ -355,16 +704,269 @@
     if (!generated) {
       return;
     }
-    var prompt = generated.title;
-    if (generated.warning) {
-      prompt += '\n\nWARNING: ' + generated.warning;
-    }
-    prompt += '\n\n' + generated.gcode;
-    if (!window.confirm(prompt)) {
+    openModal({
+      title: generated.title,
+      body: generated.gcode,
+      type: generated.modalType || type,
+      warning: generated.warning,
+      confirmLabel: 'Run Probe',
+      preformatted: true,
+      onConfirm: function () {
+        $('probeStatus').textContent = 'SENT: ' + generated.title + '\n' + generated.gcode;
+        sendGcode(generated.gcode);
+      }
+    });
+  }
+
+  function saveAutolevelSettings() {
+    var settings = getProbeSettingsFromInputs();
+    if (!validateProbeSettings(settings)) {
+      $('probeStatus').textContent = 'Fix highlighted probing settings first.';
       return;
     }
-    $('probeStatus').textContent = 'SENT: ' + generated.title + '\n' + generated.gcode;
-    sendGcode(generated.gcode);
+    sendAutolevelCommand(
+      '(autolevel_save_settings settings ' + JSON.stringify(settings) + ')',
+      'Saving settings...'
+    );
+  }
+
+  function clearMesh() {
+    openModal({
+      title: 'Clear Mesh Data?',
+      body: 'This clears the stored surface mesh from the local autolevel service.',
+      type: 'clear-mesh',
+      confirmLabel: 'Clear Mesh',
+      onConfirm: function () {
+        sendAutolevelCommand('(autolevel_clear_mesh)', 'Clearing mesh...');
+      }
+    });
+  }
+
+  function applyMesh() {
+    openModal({
+      title: 'Apply Surface Map?',
+      body: 'Apply the current mesh to the loaded G-code file.',
+      type: 'apply-mesh',
+      confirmLabel: 'Apply Mesh',
+      onConfirm: function () {
+        sendAutolevelCommand('(autolevel_apply_mesh)', 'Applying mesh...');
+      }
+    });
+  }
+
+  function clearSkew() {
+    openModal({
+      title: 'Clear Skew?',
+      body: 'Reset the stored skew angle to zero.',
+      type: 'clear-skew',
+      confirmLabel: 'Clear Skew',
+      onConfirm: function () {
+        sendAutolevelCommand('(autolevel_skew A0)', 'Clearing skew...');
+      }
+    });
+  }
+
+  function applySkew() {
+    openModal({
+      title: 'Apply Skew?',
+      body: 'Apply the stored skew angle to the loaded G-code file.',
+      type: 'apply-skew',
+      confirmLabel: 'Apply Skew',
+      onConfirm: function () {
+        sendAutolevelCommand('(autolevel_apply_skew)', 'Applying skew...');
+      }
+    });
+  }
+
+  function probeMesh() {
+    var settings = getProbeSettingsFromInputs();
+    if (!validateProbeSettings(settings)) {
+      $('probeStatus').textContent = 'Fix highlighted probing settings first.';
+      return;
+    }
+    var commandText = '(autolevel F' + settings.feedSlow + ' H' + settings.height + ' M' + settings.margin + ' P1';
+    if (settings.grid) {
+      commandText += ' GRID' + settings.grid;
+    }
+    commandText += ')';
+    openModal({
+      title: 'Start Surface Mapping?',
+      body: 'This will start a surface map probing cycle using the current settings.',
+      type: 'autolevel',
+      confirmLabel: 'Probe Mesh',
+      closeOnConfirm: false,
+      onConfirm: function () {
+        state.meshPoints = [];
+        state.meshSummary = 'Starting mesh probe...';
+        renderMeshState();
+        sendAutolevelCommand(commandText, 'Starting mesh probe...');
+        openModal({
+          title: 'Surface Mapping',
+          type: 'running',
+          body: 'Starting surface map probe...',
+          progressCurrent: 0,
+          progressTotal: 0,
+          confirmLabel: 'Stop',
+          closeOnConfirm: false,
+          onConfirm: stopAutolevel
+        });
+      }
+    });
+  }
+
+  function buildSkewProbeGcode(includeMove) {
+    var settings = getProbeSettingsFromInputs();
+    var params = probing ? probing.defaultSettings : {};
+    var spacing = Number(settings.probeSpacing || params.probeSpacing) || 50;
+    var maxTravel = Number(settings.maxTravel) || 0;
+    var fast = Number(settings.feedFast) || 0;
+    var slow = Number(settings.feedSlow) || 0;
+    var retract = Number(settings.retract) || 0;
+    var gcode = ['G91'];
+    if (includeMove) {
+      gcode.push('G0 X' + spacing);
+    }
+    gcode.push(
+      'G38.2 Y' + maxTravel + ' F' + fast,
+      'G0 Y-' + retract,
+      'G38.2 Y' + (retract + 1) + ' F' + slow,
+      'G0 Y-' + retract,
+      'G90'
+    );
+    return gcode.join('\n');
+  }
+
+  function measureSkew() {
+    var settings = getProbeSettingsFromInputs();
+    if (!validateProbeSettings(settings)) {
+      $('probeStatus').textContent = 'Fix highlighted probing settings first.';
+      return;
+    }
+    openModal({
+      title: 'Measure Skew',
+      body: 'The machine will probe the current edge point, move along X by Skew Spacing, probe the second edge point, then calculate and store the skew angle.',
+      type: 'skew',
+      confirmLabel: 'Measure Skew',
+      closeOnConfirm: false,
+      onConfirm: function () {
+        startSkewProbe(Number(settings.probeSpacing) || 50);
+      }
+    });
+  }
+
+  function startSkewProbe(spacing) {
+    state.skewState = {
+      active: true,
+      step: 1,
+      probeCount: 0,
+      spacing: spacing,
+      p1: null,
+      p2: null
+    };
+    state.skewResult = null;
+    openModal({
+      title: 'Measuring Skew',
+      type: 'running',
+      body: 'Skew: Probing Point 1...',
+      progressCurrent: 1,
+      progressTotal: 2,
+      confirmLabel: 'Stop',
+      closeOnConfirm: false,
+      onConfirm: stopAutolevel
+    });
+    sendGcode(buildSkewProbeGcode(false));
+    $('probeStatus').textContent = 'Skew: Probing Point 1...';
+  }
+
+  function processSkewProbe(line) {
+    if (!state.skewState.active) {
+      return false;
+    }
+    var match = /\[PRB:\s*([.\+\-\d]+)\s*,\s*([.\+\-\d]+)\s*,\s*([.\+\-\d]+)/.exec(line);
+    if (!match) {
+      return false;
+    }
+    var point = {
+      x: Number(match[1]),
+      y: Number(match[2]),
+      z: Number(match[3])
+    };
+    var probeCount = (state.skewState.probeCount || 0) + 1;
+
+    if (state.skewState.step === 1 && probeCount < 2) {
+      state.skewState.probeCount = probeCount;
+      return true;
+    }
+    if (state.skewState.step === 1) {
+      state.skewState.step = 2;
+      state.skewState.probeCount = 0;
+      state.skewState.p1 = point;
+      updateRunningModal('Skew: Moving to Point 2...', 2, 2);
+      sendGcode(buildSkewProbeGcode(true));
+      $('probeStatus').textContent = 'Skew: Moving to Point 2...';
+      return true;
+    }
+    if (state.skewState.step === 2 && probeCount < 2) {
+      state.skewState.probeCount = probeCount;
+      return true;
+    }
+    if (state.skewState.step === 2) {
+      finishSkewProbe(point);
+      return true;
+    }
+    return false;
+  }
+
+  function finishSkewProbe(p2) {
+    var p1 = state.skewState.p1;
+    if (!p1) {
+      return;
+    }
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    state.skewState.active = false;
+    state.skewState.step = 0;
+    state.skewState.probeCount = 0;
+    state.skewState.p2 = p2;
+    state.skewAngle = angle;
+    state.skewResult = { p1: p1, p2: p2, angle: angle };
+    renderSkewState();
+    sendAutolevelCommand('(autolevel_skew A' + angle.toFixed(5) + ')', 'Skew angle stored.');
+    openModal({
+      title: 'Skew Measurement Result',
+      type: 'skew-result',
+      body: 'Apply this skew angle to your loaded G-code?',
+      confirmLabel: 'Apply Skew',
+      onConfirm: function () {
+        sendAutolevelCommand('(autolevel_apply_skew)', 'Applying skew...');
+      }
+    });
+  }
+
+  function stopAutolevel() {
+    writeRaw('!');
+    sendAutolevelCommand('(autolevel_stop)', 'Stopping... finishing current motion if needed.');
+    setTimeout(function () {
+      writeRaw('~');
+    }, 250);
+    state.skewState.active = false;
+    state.skewState.step = 0;
+    state.skewState.probeCount = 0;
+    closeModal();
+  }
+
+  function runAutolevelAction(action) {
+    ({
+      'save-settings': saveAutolevelSettings,
+      'refresh': refreshAutolevelSettings,
+      'measure-skew': measureSkew,
+      'clear-skew': clearSkew,
+      'apply-skew': applySkew,
+      'probe-mesh': probeMesh,
+      'clear-mesh': clearMesh,
+      'apply-mesh': applyMesh
+    }[action] || function () {})();
   }
 
   function loadCustomCommands() {
@@ -470,6 +1072,8 @@
     var probeMode = button.getAttribute('data-probe-mode');
     var probeType = button.getAttribute('data-probe-type');
     var probeArg = button.getAttribute('data-probe-arg');
+    var autolevelTab = button.getAttribute('data-autolevel-tab');
+    var autolevelAction = button.getAttribute('data-autolevel-action');
     var customCommand = button.getAttribute('data-custom-command');
     var jogSpec = button.getAttribute('data-jog');
     var gcode = button.getAttribute('data-gcode');
@@ -482,6 +1086,10 @@
       selectStepByDelta(Number(stepDelta));
     } else if (probeMode) {
       updateProbeMode(probeMode);
+    } else if (autolevelTab) {
+      updateAutolevelTab(autolevelTab);
+    } else if (autolevelAction) {
+      runAutolevelAction(autolevelAction);
     } else if (probeType) {
       runPendantProbe(probeType, probeArg);
     } else if (customCommand) {
@@ -519,6 +1127,8 @@
   if ($('refreshCommandsButton')) {
     $('refreshCommandsButton').addEventListener('click', loadCustomCommands);
   }
+  $('modalCancel').addEventListener('click', closeModal);
+  $('modalConfirm').addEventListener('click', confirmModal);
 
   $('portSelect').addEventListener('change', function () {
     state.port = $('portSelect').value;
@@ -528,6 +1138,9 @@
   state.autolevelSettings = Object.assign({}, probing ? probing.defaultSettings : {});
   applyProbeSettingsToInputs();
   updateProbeMode(state.probeMode);
+  updateAutolevelTab(state.autolevelTab);
+  renderMeshState();
+  renderSkewState();
   selectStep(state.step);
   setConnected(false);
   signin().then(connect).catch(function () {
