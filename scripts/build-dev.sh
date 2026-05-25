@@ -24,6 +24,8 @@ i18next-scanner --config i18next-scanner.app.config.js \"src/app/**/*.{html,js,j
 
 mkdir -p output/cncjs/app
 mkdir -p output/cncjs/server
+mkdir -p output/cncjs/shared
 
 cp -af src/app/{favicon.ico,i18n,images,assets} output/cncjs/app/
 cp -af src/server/{i18n,views} output/cncjs/server/
+cp -af src/shared/* output/cncjs/shared/

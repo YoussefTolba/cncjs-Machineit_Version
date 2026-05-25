@@ -6,6 +6,7 @@ import React, { PureComponent } from 'react';
 import Space from 'app/components/Space';
 import controller from 'app/lib/controller';
 import i18n from 'app/lib/i18n';
+import machineCommands from 'shared/machine-commands';
 import styles from './index.styl';
 
 class Spindle extends PureComponent {
@@ -35,11 +36,7 @@ class Spindle extends PureComponent {
                       className="btn btn-default"
                       style={{ padding: '5px 0' }}
                       onClick={() => {
-                        if (spindleSpeed > 0) {
-                          controller.command('gcode', 'M3 S' + spindleSpeed);
-                        } else {
-                          controller.command('gcode', 'M3');
-                        }
+                        controller.command('gcode', machineCommands.buildSpindleCommand('M3', spindleSpeed));
                       }}
                       title={i18n._('Spindle On, CW (M3)', { ns: 'gcode' })}
                       disabled={!canClick}
@@ -61,11 +58,7 @@ class Spindle extends PureComponent {
                       className="btn btn-default"
                       style={{ padding: '5px 0' }}
                       onClick={() => {
-                        if (spindleSpeed > 0) {
-                          controller.command('gcode', 'M4 S' + spindleSpeed);
-                        } else {
-                          controller.command('gcode', 'M4');
-                        }
+                        controller.command('gcode', machineCommands.buildSpindleCommand('M4', spindleSpeed));
                       }}
                       title={i18n._('Spindle On, CCW (M4)', { ns: 'gcode' })}
                       disabled={!canClick}
@@ -86,7 +79,7 @@ class Spindle extends PureComponent {
                       type="button"
                       className="btn btn-default"
                       style={{ padding: '5px 0' }}
-                      onClick={() => controller.command('gcode', 'M5')}
+                      onClick={() => controller.command('gcode', machineCommands.buildSpindleCommand('M5'))}
                       title={i18n._('Spindle Off (M5)', { ns: 'gcode' })}
                       disabled={!canClick}
                     >
@@ -106,7 +99,7 @@ class Spindle extends PureComponent {
                       className="btn btn-default"
                       style={{ padding: '5px 0' }}
                       onClick={() => {
-                        controller.command('gcode', 'M7');
+                        controller.command('gcode', machineCommands.buildCoolantCommand('M7'));
                       }}
                       title={i18n._('Mist Coolant On (M7)', { ns: 'gcode' })}
                       disabled={!canClick}
@@ -128,7 +121,7 @@ class Spindle extends PureComponent {
                       className="btn btn-default"
                       style={{ padding: '5px 0' }}
                       onClick={() => {
-                        controller.command('gcode', 'M8');
+                        controller.command('gcode', machineCommands.buildCoolantCommand('M8'));
                       }}
                       title={i18n._('Flood Coolant On (M8)', { ns: 'gcode' })}
                       disabled={!canClick}
@@ -150,7 +143,7 @@ class Spindle extends PureComponent {
                       className="btn btn-default"
                       style={{ padding: '5px 0' }}
                       onClick={() => {
-                        controller.command('gcode', 'M9');
+                        controller.command('gcode', machineCommands.buildCoolantCommand('M9'));
                       }}
                       title={i18n._('Coolant Off (M9)', { ns: 'gcode' })}
                       disabled={!canClick}

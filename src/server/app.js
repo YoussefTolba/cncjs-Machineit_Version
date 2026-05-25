@@ -181,6 +181,10 @@ const appMain = () => {
   }
   app.use(compress(settings.middleware.compression));
 
+  app.use(urljoin(settings.route, 'shared'), serveStatic(path.resolve(__dirname, '../shared'), {
+    maxAge: 0
+  }));
+
   Object.keys(settings.assets).forEach((name) => {
     const asset = settings.assets[name];
 

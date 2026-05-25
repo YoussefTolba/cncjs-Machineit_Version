@@ -14,6 +14,9 @@
     autolevelSettings: {},
     customCommands: [],
     gcodeLoaded: false,
+    spindleSpeed: Number(localStorage.getItem('cncjsPendantSpindleSpeed') || 1000),
+    spindleState: '',
+    coolantState: [],
     meshPoints: [],
     meshSummary: 'No mesh data.',
     skewAngle: 0,
@@ -36,6 +39,19 @@
   var logEl = $('log');
   var buttons = Array.prototype.slice.call(document.querySelectorAll('button'));
   var probing = window.CNCjsPendantProbing || null;
+  var machineCommands = window.CNCjsMachineCommands || {
+    buildCoolantCommand: function (code) {
+      return String(code || '').toUpperCase();
+    },
+    buildSpindleCommand: function (code, speed) {
+      var commandText = String(code || '').toUpperCase();
+      var spindleSpeed = Number(speed);
+      if ((commandText === 'M3' || commandText === 'M4') && Number.isFinite(spindleSpeed) && spindleSpeed > 0) {
+        commandText += ' S' + spindleSpeed;
+      }
+      return commandText;
+    }
+  };
   var jogSteps = [
     0.001, 0.002, 0.003, 0.005,
     0.01, 0.02, 0.03, 0.05,
@@ -139,10 +155,14 @@
     socket.on('controller:state', function (type, controllerState) {
       state.controllerType = type;
       var status = controllerState && controllerState.status;
+      var modal = controllerState && controllerState.modal;
       var activeState = status && status.activeState;
       var wpos = status && status.wpos;
 
       $('machineState').textContent = activeState || 'Unknown';
+      state.spindleState = (modal && modal.spindle) || state.spindleState;
+      state.coolantState = normalizeGcodeLines(modal && modal.coolant);
+      renderSpindleState();
       if (wpos) {
         $('posX').textContent = wpos.x || '0.000';
         $('posY').textContent = wpos.y || '0.000';
@@ -153,6 +173,8 @@
     socket.on('workflow:state', function (workflowState) {
       log('Workflow: ' + workflowState);
     });
+
+    socket.on('feeder:status', handleFeederStatus);
 
     socket.on('serialport:read', function (line) {
       if (typeof line !== 'string') {
@@ -255,6 +277,15 @@
     }
     command('gcode', block.length === 1 ? block[0] : block);
     log('G-code sent: ' + block.join(' | '));
+  }
+
+  function sendSpindleCommand(code) {
+    var commandText = machineCommands.buildSpindleCommand(code, $('spindleSpeed').value || state.spindleSpeed || 0);
+    sendGcode(commandText);
+  }
+
+  function sendCoolantCommand(code) {
+    sendGcode(machineCommands.buildCoolantCommand(code));
   }
 
   function sendControllerCommand(cmd, args) {
@@ -513,6 +544,72 @@
     }
   }
 
+  function renderSpindleState() {
+    if ($('spindleM3')) {
+      $('spindleM3').classList.toggle('active', state.spindleState === 'M3');
+    }
+    if ($('spindleM4')) {
+      $('spindleM4').classList.toggle('active', state.spindleState === 'M4');
+    }
+    if ($('spindleM5')) {
+      $('spindleM5').classList.toggle('active', state.spindleState === 'M5');
+    }
+    if ($('coolantM7')) {
+      $('coolantM7').classList.toggle('active', state.coolantState.indexOf('M7') >= 0);
+    }
+    if ($('coolantM8')) {
+      $('coolantM8').classList.toggle('active', state.coolantState.indexOf('M8') >= 0);
+    }
+  }
+
+  function handleFeederStatus(status) {
+    var hold = status && status.hold;
+    var holdReason = (status && status.holdReason) || {};
+
+    if (!hold) {
+      if (state.modal && (state.modal.type === 'feeder-paused' || state.modal.type === 'feeder-wait')) {
+        closeModal();
+      }
+      return;
+    }
+
+    var data = holdReason.data || '';
+    var title = ({
+      M0: 'M0 Program Pause',
+      M1: 'M1 Program Pause',
+      M2: 'M2 Program End',
+      M30: 'M30 Program End',
+      M6: 'M6 Tool Change'
+    })[data] || data || 'Program Pause';
+
+    if (holdReason.err) {
+      title = 'Error';
+    }
+    if (data === '%wait') {
+      title = '%wait';
+    }
+
+    openModal({
+      title: title,
+      body: holdReason.msg || '',
+      type: data === '%wait' ? 'feeder-wait' : 'feeder-paused',
+      confirmLabel: data === '%wait' ? 'Stop' : 'Continue',
+      closeOnConfirm: false,
+      onConfirm: function () {
+        if (data === '%wait') {
+          sendControllerCommand('feeder:stop');
+          closeModal();
+          return;
+        }
+        sendControllerCommand('feeder:start');
+        closeModal();
+      },
+      onCancel: function () {
+        sendControllerCommand('feeder:stop');
+      }
+    });
+  }
+
   function getMeshStats() {
     if (state.meshPoints.length === 0) {
       return null;
@@ -654,6 +751,12 @@
     if (modal.warning) {
       body += '<div class="modal-warning"><strong>WARNING:</strong> ' + escapeHtml(modal.warning) + '</div>';
     }
+    if (modal.type === 'feeder-wait') {
+      body += '<div class="modal-warning">' + escapeHtml('Waiting for the planner to empty...') + '</div>';
+    }
+    if (modal.type === 'feeder-paused') {
+      body += '<div class="modal-warning">' + escapeHtml('Click the Continue button to resume execution.') + '</div>';
+    }
     if (modal.body && !isRunning) {
       body += modal.preformatted ? '<pre>' + escapeHtml(modal.body) + '</pre>' : '<div class="running-progress">' + escapeHtml(modal.body) + '</div>';
     }
@@ -662,7 +765,8 @@
     $('modalBody').innerHTML = body;
     $('modalConfirm').textContent = isRunning ? 'Stop' : (modal.confirmLabel || 'Run');
     $('modalConfirm').classList.toggle('danger', isRunning || (modal.type || '').indexOf('clear') === 0);
-    $('modalCancel').classList.toggle('hidden', isRunning);
+    $('modalCancel').textContent = (modal.type === 'feeder-paused' || modal.type === 'feeder-wait') ? 'Stop' : 'Cancel';
+    $('modalCancel').classList.toggle('hidden', isRunning || modal.type === 'feeder-wait');
     $('probeModal').classList.remove('hidden');
   }
 
@@ -1075,6 +1179,8 @@
     var autolevelTab = button.getAttribute('data-autolevel-tab');
     var autolevelAction = button.getAttribute('data-autolevel-action');
     var customCommand = button.getAttribute('data-custom-command');
+    var spindleCommand = button.getAttribute('data-spindle');
+    var coolantCommand = button.getAttribute('data-coolant');
     var jogSpec = button.getAttribute('data-jog');
     var gcode = button.getAttribute('data-gcode');
     var cmd = button.getAttribute('data-command');
@@ -1094,6 +1200,10 @@
       runPendantProbe(probeType, probeArg);
     } else if (customCommand) {
       runCustomCommand(customCommand);
+    } else if (spindleCommand) {
+      sendSpindleCommand(spindleCommand);
+    } else if (coolantCommand) {
+      sendCoolantCommand(coolantCommand);
     } else if (jogSpec) {
       jog(jogSpec);
     } else if (gcode) {
@@ -1127,8 +1237,18 @@
   if ($('refreshCommandsButton')) {
     $('refreshCommandsButton').addEventListener('click', loadCustomCommands);
   }
-  $('modalCancel').addEventListener('click', closeModal);
+  $('modalCancel').addEventListener('click', function () {
+    if (state.modal && state.modal.onCancel) {
+      state.modal.onCancel();
+    }
+    closeModal();
+  });
   $('modalConfirm').addEventListener('click', confirmModal);
+
+  $('spindleSpeed').addEventListener('change', function () {
+    state.spindleSpeed = Number($('spindleSpeed').value) || 0;
+    localStorage.setItem('cncjsPendantSpindleSpeed', String(state.spindleSpeed));
+  });
 
   $('portSelect').addEventListener('change', function () {
     state.port = $('portSelect').value;
@@ -1141,6 +1261,8 @@
   updateAutolevelTab(state.autolevelTab);
   renderMeshState();
   renderSkewState();
+  $('spindleSpeed').value = String(state.spindleSpeed);
+  renderSpindleState();
   selectStep(state.step);
   setConnected(false);
   signin().then(connect).catch(function () {

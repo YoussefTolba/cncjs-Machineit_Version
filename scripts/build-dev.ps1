@@ -48,11 +48,13 @@ Pop-Location
 # Copy necessary files
 New-Item -ItemType Directory -Force -Path "output/cncjs/app"
 New-Item -ItemType Directory -Force -Path "output/cncjs/server"
+New-Item -ItemType Directory -Force -Path "output/cncjs/shared"
 Copy-Item -Path "src/app/favicon.ico" -Destination "output/cncjs/app"
 Copy-Item -Path "src/app/i18n" -Destination "output/cncjs/app" -Recurse
 Copy-Item -Path "src/app/images" -Destination "output/cncjs/app" -Recurse
 Copy-Item -Path "src/app/assets" -Destination "output/cncjs/app" -Recurse
 Copy-Item -Path "src/server/i18n" -Destination "output/cncjs/server" -Recurse
 Copy-Item -Path "src/server/views" -Destination "output/cncjs/server" -Recurse
+Copy-Item -Path "src/shared/*" -Destination "output/cncjs/shared" -Recurse
 
 Write-Host "Build complete." -ForegroundColor Green

@@ -131,6 +131,35 @@
       </div>
     </section>
 
+    <section class="panel spindle-panel">
+      <div class="section-title">Spindle</div>
+      <div class="spindle-grid">
+        <div>
+          <label>Spindle</label>
+          <div class="button-grid three">
+            <button type="button" data-spindle="M3" id="spindleM3" title="Spindle On, CW (M3)">M3</button>
+            <button type="button" data-spindle="M4" id="spindleM4" title="Spindle On, CCW (M4)">M4</button>
+            <button type="button" data-spindle="M5" id="spindleM5" title="Spindle Off (M5)">M5</button>
+          </div>
+        </div>
+        <div>
+          <label>Coolant</label>
+          <div class="button-grid three">
+            <button type="button" data-coolant="M7" id="coolantM7" title="Mist Coolant On (M7)">M7</button>
+            <button type="button" data-coolant="M8" id="coolantM8" title="Flood Coolant On (M8)">M8</button>
+            <button type="button" data-coolant="M9" title="Coolant Off (M9)">M9</button>
+          </div>
+        </div>
+      </div>
+      <label>
+        Spindle Speed
+        <div class="input-addon">
+          <input id="spindleSpeed" type="number" min="0" step="1" value="1000" inputmode="numeric">
+          <span>RPM</span>
+        </div>
+      </label>
+    </section>
+
     <section class="panel probe-panel">
       <div class="section-title">Autolevel</div>
       <div class="tab-row">
@@ -267,6 +296,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/shared/machine-commands.js"></script>
   <script src="probing.js"></script>
   <script src="app.js"></script>
 </body>
