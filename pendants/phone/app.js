@@ -174,8 +174,6 @@
       log('Workflow: ' + workflowState);
     });
 
-    socket.on('feeder:status', handleFeederStatus);
-
     socket.on('serialport:read', function (line) {
       if (typeof line !== 'string') {
         return;
@@ -562,54 +560,6 @@
     }
   }
 
-  function handleFeederStatus(status) {
-    var hold = status && status.hold;
-    var holdReason = (status && status.holdReason) || {};
-
-    if (!hold) {
-      if (state.modal && (state.modal.type === 'feeder-paused' || state.modal.type === 'feeder-wait')) {
-        closeModal();
-      }
-      return;
-    }
-
-    var data = holdReason.data || '';
-    var title = ({
-      M0: 'M0 Program Pause',
-      M1: 'M1 Program Pause',
-      M2: 'M2 Program End',
-      M30: 'M30 Program End',
-      M6: 'M6 Tool Change'
-    })[data] || data || 'Program Pause';
-
-    if (holdReason.err) {
-      title = 'Error';
-    }
-    if (data === '%wait') {
-      title = '%wait';
-    }
-
-    openModal({
-      title: title,
-      body: holdReason.msg || '',
-      type: data === '%wait' ? 'feeder-wait' : 'feeder-paused',
-      confirmLabel: data === '%wait' ? 'Stop' : 'Continue',
-      closeOnConfirm: false,
-      onConfirm: function () {
-        if (data === '%wait') {
-          sendControllerCommand('feeder:stop');
-          closeModal();
-          return;
-        }
-        sendControllerCommand('feeder:start');
-        closeModal();
-      },
-      onCancel: function () {
-        sendControllerCommand('feeder:stop');
-      }
-    });
-  }
-
   function getMeshStats() {
     if (state.meshPoints.length === 0) {
       return null;
@@ -751,12 +701,6 @@
     if (modal.warning) {
       body += '<div class="modal-warning"><strong>WARNING:</strong> ' + escapeHtml(modal.warning) + '</div>';
     }
-    if (modal.type === 'feeder-wait') {
-      body += '<div class="modal-warning">' + escapeHtml('Waiting for the planner to empty...') + '</div>';
-    }
-    if (modal.type === 'feeder-paused') {
-      body += '<div class="modal-warning">' + escapeHtml('Click the Continue button to resume execution.') + '</div>';
-    }
     if (modal.body && !isRunning) {
       body += modal.preformatted ? '<pre>' + escapeHtml(modal.body) + '</pre>' : '<div class="running-progress">' + escapeHtml(modal.body) + '</div>';
     }
@@ -765,8 +709,7 @@
     $('modalBody').innerHTML = body;
     $('modalConfirm').textContent = isRunning ? 'Stop' : (modal.confirmLabel || 'Run');
     $('modalConfirm').classList.toggle('danger', isRunning || (modal.type || '').indexOf('clear') === 0);
-    $('modalCancel').textContent = (modal.type === 'feeder-paused' || modal.type === 'feeder-wait') ? 'Stop' : 'Cancel';
-    $('modalCancel').classList.toggle('hidden', isRunning || modal.type === 'feeder-wait');
+    $('modalCancel').classList.toggle('hidden', isRunning);
     $('probeModal').classList.remove('hidden');
   }
 
@@ -1237,12 +1180,7 @@
   if ($('refreshCommandsButton')) {
     $('refreshCommandsButton').addEventListener('click', loadCustomCommands);
   }
-  $('modalCancel').addEventListener('click', function () {
-    if (state.modal && state.modal.onCancel) {
-      state.modal.onCancel();
-    }
-    closeModal();
-  });
+  $('modalCancel').addEventListener('click', closeModal);
   $('modalConfirm').addEventListener('click', confirmModal);
 
   $('spindleSpeed').addEventListener('change', function () {

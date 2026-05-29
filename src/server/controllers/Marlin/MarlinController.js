@@ -48,7 +48,7 @@ import {
   WRITE_SOURCE_SENDER
 } from '../constants';
 import * as builtinCommand from '../utils/builtin-command';
-import { addSpindleStartPrompt, isM0, isM1, isM6, isM109, isM190, replaceM6 } from '../utils/gcode';
+import { isM0, isM1, isM6, isM109, isM190, replaceM6 } from '../utils/gcode';
 import { in2mm, mapPositionToUnits, mapValueToUnits } from '../utils/units';
 import MarlinRunner from './MarlinRunner';
 import interpret from './interpret';
@@ -1359,7 +1359,6 @@ class MarlinController {
           // be no queued motions, as long as no more commands were sent after the G4.
           // This is the fastest way to do it without having to check the status reports.
           const dwell = '%wait ; Wait for the planner to empty';
-          gcode = addSpindleStartPrompt(gcode);
           const ok = this.sender.load(name, gcode + '\n' + dwell, context);
           if (!ok) {
             callback(new Error(`Invalid G-code: name=${name}`));
@@ -1565,7 +1564,7 @@ class MarlinController {
               return line.trim().length > 0;
             });
 
-          this.feeder.feed(addSpindleStartPrompt(data).split('\n'), context);
+          this.feeder.feed(data, context);
 
           { // The following criteria must be met to trigger the feeder
             const notBusy = !(this.history.writeSource);
