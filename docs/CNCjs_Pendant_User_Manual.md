@@ -186,6 +186,52 @@ The normal desktop/tablet workspace is the best place to set up a job. Use it wh
 | Tool tab | Controls M6 tool-change behavior and optional tool probing positions |
 | Console | Send or inspect raw GRBL commands and responses |
 | Jobs / Files | Load, preview, start, pause, and stop G-code jobs |
+| Settings | App settings, workspace records, events, and the GRBL Settings wizard |
+
+## GRBL Settings Wizard
+
+Use the GRBL Settings wizard when you need to inspect, back up, edit, or restore firmware settings. Open it from the desktop workspace at Settings > GRBL Settings after connecting to a GRBL controller.
+
+The wizard reads settings with `$$` and writes changes as normal GRBL `$number=value` commands. Do not use it during a running job.
+
+| Tab | Use |
+| --- | --- |
+| Backup | Save the current settings to a backup file, load a previous backup file, and flash settings from that file |
+| Motion | Edit travel resolution, maximum rates, acceleration, travel limits, and steps/mm calibration |
+| Homing & Limits | Edit limit switch, homing, debounce, search, feed, and pull-off settings |
+| Spindle & Laser | Edit spindle speed range and laser mode |
+| Advanced | Edit pulse, invert, report, junction, arc, and unit-reporting settings |
+
+### Back Up GRBL Settings
+
+1. Connect to the GRBL controller.
+2. Open Settings > GRBL Settings.
+3. Click Refresh if the settings list is empty or stale.
+4. Open the Backup tab.
+5. Click Back Up.
+6. Keep the downloaded `grbl-settings-YYYYMMDD-HHMMSS.txt` file somewhere safe.
+
+The backup file contains readable comments plus flashable `$number=value` lines. The wizard also displays the generated or loaded file so you can inspect it before using it.
+
+### Restore A Backup File
+
+1. Connect to the same GRBL controller or a compatible replacement controller.
+2. Open Settings > GRBL Settings > Backup.
+3. Click Choose Backup File and select the saved settings file.
+4. Confirm the displayed file contains the settings you expect.
+5. Click Flash Backup.
+6. Confirm the inline warning.
+7. Wait for the wizard to send the settings and read `$$` back from GRBL.
+
+Only flash backup files you trust. A GRBL settings file can change steps/mm, axis direction, limit behavior, homing behavior, spindle speed mapping, and laser mode.
+
+### Safe Editing Rules
+
+1. Back up the current settings before making changes.
+2. Change one group of settings at a time.
+3. Keep the machine idle and the router/spindle off while changing firmware settings.
+4. Test jog direction, travel distance, homing, limits, and probing before cutting again.
+5. If a change makes the machine behave incorrectly, reload the backup file and flash it back.
 
 ## Phone Pendant Overview
 
