@@ -24,6 +24,7 @@ import Workspace from './Workspace';
 import MachineProfiles from './MachineProfiles';
 import UserAccounts from './UserAccounts';
 import Controller from './Controller';
+import GrblSettings from './GrblSettings';
 import Commands from './Commands';
 import Events from './Events';
 import About from './About';
@@ -56,6 +57,12 @@ class Settings extends PureComponent {
         path: 'controller',
         title: i18n._('Controller'),
         component: (props) => <Controller {...props} />
+      },
+      {
+        id: 'grblSettings',
+        path: 'grbl-settings',
+        title: i18n._('GRBL Settings'),
+        component: GrblSettings
       },
       {
         id: 'machineProfiles',
@@ -359,6 +366,8 @@ class Settings extends PureComponent {
           }));
         },
       },
+      // GRBL Settings
+      grblSettings: {},
       // Machine Profiles
       machineProfiles: {
         fetchRecords: (options) => {
@@ -1152,6 +1161,8 @@ class Settings extends PureComponent {
           },
           ignoreErrors: false,
         },
+        // GRBL Settings
+        grblSettings: {},
         // Commands
         commands: {
           api: {

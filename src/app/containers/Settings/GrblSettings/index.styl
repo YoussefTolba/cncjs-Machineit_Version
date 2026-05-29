@@ -1,0 +1,346 @@
+@import '../form';
+
+.grbl-settings {
+    margin-top: -10px;
+    padding-bottom: 55px;
+}
+
+.status-bar,
+.panel {
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f8f8;
+}
+
+.status-title {
+    font-weight: bold;
+    color: #333;
+}
+
+.status-detail {
+    margin-top: 3px;
+    color: #777;
+    font-size: 12px;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 0 12px -6px;
+}
+
+.tab,
+.active-tab {
+    margin-left: 6px;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    color: #337ab7;
+    cursor: pointer;
+}
+
+.active-tab {
+    background: #337ab7;
+    border-color: #2e6da4;
+    color: #fff;
+}
+
+.editor-layout {
+    display: flex;
+    min-height: 360px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.setting-list {
+    flex: 0 0 290px;
+    max-width: 290px;
+    border-right: 1px solid #ddd;
+    background: #f8f8f8;
+    overflow-y: auto;
+}
+
+.setting-button,
+.setting-button-active {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-bottom: 1px solid #e5e5e5;
+    background: transparent;
+    color: #333;
+    text-align: left;
+    cursor: pointer;
+}
+
+.setting-button:hover {
+    background: #eee;
+}
+
+.setting-button-active {
+    background: #e8f2fb;
+    box-shadow: inset 3px 0 0 #337ab7;
+}
+
+.setting-code {
+    display: inline-block;
+    width: 45px;
+    color: #777;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.setting-name {
+    display: inline-block;
+    max-width: 185px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+.setting-value {
+    display: block;
+    margin-top: 3px;
+    color: #777;
+    font-size: 12px;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.editor {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 14px;
+}
+
+.setting-title {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.setting-title h4,
+.panel h5 {
+    margin: 0;
+    font-weight: bold;
+}
+
+.setting-description {
+    margin-bottom: 12px;
+    color: #555;
+}
+
+.input-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin: -4px;
+}
+
+.field {
+    flex: 1 1 170px;
+    min-width: 150px;
+    margin: 4px;
+    font-weight: normal;
+}
+
+.field span {
+    display: block;
+    margin-bottom: 4px;
+    color: #777;
+    font-size: 12px;
+}
+
+.field input,
+.field select,
+.backup-textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #555;
+    box-sizing: border-box;
+}
+
+.field input,
+.field select {
+    height: 32px;
+    padding: 4px 8px;
+}
+
+.backup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.backup-meta {
+    min-width: 0;
+    color: #555;
+}
+
+.backup-meta span {
+    display: block;
+    margin-bottom: 3px;
+    color: #777;
+    font-size: 12px;
+}
+
+.backup-meta strong {
+    display: block;
+    max-width: 420px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-button {
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.file-button:hover {
+    background: #e6e6e6;
+}
+
+.file-button input {
+    display: none;
+}
+
+.backup-textarea {
+    min-height: 280px;
+    margin-top: 10px;
+    padding: 8px;
+    resize: vertical;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.axis-mask {
+    display: flex;
+    margin: 0 0 10px -10px;
+}
+
+.axis-mask label,
+.boolean-field label {
+    font-weight: normal;
+}
+
+.axis-mask label {
+    margin-left: 10px;
+}
+
+.axis-mask input,
+.boolean-field input {
+    margin-right: 4px;
+}
+
+.readout,
+.command-preview {
+    padding: 7px 9px;
+    background: #f8f8f8;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.command-preview {
+    margin-top: 10px;
+}
+
+.helper-text {
+    margin-top: 8px;
+    color: #777;
+    font-size: 12px;
+}
+
+.actions {
+    margin-top: 12px;
+}
+
+.actions button + button {
+    margin-left: 6px;
+}
+
+.flash-confirm {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    padding: 10px;
+    background: #fcf8e3;
+    border: 1px solid #faebcc;
+    border-radius: 4px;
+    color: #8a6d3b;
+}
+
+.flash-confirm span {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.flash-confirm button {
+    margin-left: 6px;
+}
+
+.text-danger {
+    margin-top: 8px;
+    color: #a94442;
+}
+
+@media (max-width: 860px) {
+    .status-bar,
+    .editor-layout {
+        display: block;
+    }
+
+    .status-bar button {
+        margin-top: 10px;
+    }
+
+    .backup-header {
+        display: block;
+    }
+
+    .backup-meta strong {
+        max-width: none;
+    }
+
+    .file-button {
+        margin-top: 10px;
+    }
+
+    .flash-confirm {
+        display: block;
+    }
+
+    .flash-confirm button {
+        margin-top: 8px;
+        margin-left: 0;
+        margin-right: 6px;
+    }
+
+    .setting-list {
+        max-width: none;
+        border-right: 0;
+        border-bottom: 1px solid #ddd;
+        max-height: 260px;
+    }
+}
