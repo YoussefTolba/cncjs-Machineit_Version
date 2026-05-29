@@ -22,7 +22,7 @@ const defaultState = {
       secondary: {
         show: true,
         widgets: [
-          'axes', 'gcode', 'macro', 'autolevel', 'tool', 'spindle',
+          'axes', 'gcode', 'macro', 'autolevel', 'calibration', 'tool', 'spindle',
         ]
       }
     },
@@ -43,6 +43,18 @@ const defaultState = {
       startZ: 5,
       endZ: -10,
       feedrate: 10,
+    },
+    calibration: {
+      minimized: false,
+      activeTab: 'xy-skew',
+      xySkew: {
+        xLength: 500,
+        yDirection: '+',
+        maxTravel: 25,
+        retract: 2,
+        fastFeed: 200,
+        slowFeed: 50
+      }
     },
     axes: {
       minimized: false,

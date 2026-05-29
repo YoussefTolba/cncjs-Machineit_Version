@@ -555,5 +555,7 @@
   "Rotate Right": "Rotate Right",
   "Flip Horizontally": "Flip Horizontally",
   "Flip Vertically": "Flip Vertically",
-  "Crosshair": "Crosshair"
+  "Crosshair": "Crosshair",
+  "Calibration Widget": "Calibration Widget",
+  "This widget contains machine calibration wizards for GRBL firmware settings.": "This widget contains machine calibration wizards for GRBL firmware settings."
 }

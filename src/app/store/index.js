@@ -119,7 +119,26 @@ const normalizeState = (state) => {
     secondaryList.splice(insertIndex, 0, 'autolevel');
   }
 
+  const hasCalibrationWidget = [
+    ...defaultList,
+    ...primaryList,
+    ...secondaryList
+  ].includes('calibration');
+
+  if (!hasCalibrationWidget) {
+    const autolevelIndex = secondaryList.indexOf('autolevel');
+    const toolIndex = secondaryList.indexOf('tool');
+    let insertIndex = secondaryList.length;
+    if (autolevelIndex >= 0) {
+      insertIndex = autolevelIndex + 1;
+    } else if (toolIndex >= 0) {
+      insertIndex = toolIndex;
+    }
+    secondaryList.splice(insertIndex, 0, 'calibration');
+  }
+
   set(state, 'widgets.autolevel.disabled', false);
+  set(state, 'widgets.calibration.disabled', false);
 
   set(state, 'workspace.container.primary.widgets', primaryList);
   set(state, 'workspace.container.secondary.widgets', secondaryList);
