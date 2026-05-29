@@ -22,6 +22,7 @@ class App extends PureComponent {
         '/settings/machine-profiles',
         '/settings/user-accounts',
         '/settings/controller',
+        '/settings/grbl-settings',
         '/settings/commands',
         '/settings/events',
         '/settings/about'

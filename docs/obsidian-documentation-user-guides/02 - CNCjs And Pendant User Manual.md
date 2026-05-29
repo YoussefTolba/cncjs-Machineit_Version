@@ -98,6 +98,7 @@ The Settings page is not used for normal jogging or cutting, but it is part of t
 | General | Opens general CNCjs settings | You need language or usage settings |
 | Workspace | Opens workspace layout import/export/defaults | You need to save or restore layout settings |
 | Controller | Opens controller behavior settings | You need to change controller error handling |
+| GRBL Settings | Opens the GRBL settings wizard | You need to read, back up, edit, or restore GRBL firmware settings |
 | Machine Profiles | Opens machine profile records | You need bed/travel/profile overlays |
 | User Accounts | Opens account records | Login/session accounts are enabled |
 | Commands | Opens custom command records | You need top-right command menu actions |
@@ -114,6 +115,49 @@ The Settings page is not used for normal jogging or cutting, but it is part of t
 | OK | Confirms a create, update, delete, or restore dialog | Press only after reading the dialog |
 | Check for updates toggle | Enables/disables update checks | In About settings |
 | Help buttons | Open help, documentation, or project links | Use for reference information |
+
+### GRBL Settings Wizard
+
+Open Settings > GRBL Settings after connecting to a GRBL controller. The wizard reads the controller with `$$`, displays the settings in grouped tabs, and writes changes as normal `$number=value` GRBL commands.
+
+Do not use the wizard during a running job.
+
+| Tab | What it is for |
+| --- | --- |
+| Backup | Save the current settings to a backup file, load a previous backup file, and flash settings from that file |
+| Motion | Edit steps/mm, max rates, acceleration, travel limits, and steps/mm calibration |
+| Homing & Limits | Edit limit switch, homing, debounce, search, feed, and pull-off settings |
+| Spindle & Laser | Edit spindle speed range and laser mode |
+| Advanced | Edit pulse, invert, report, junction, arc, and unit-reporting settings |
+
+Backup workflow:
+
+1. Connect to the GRBL controller.
+2. Open Settings > GRBL Settings.
+3. Click Refresh if the settings list is empty or stale.
+4. Open the Backup tab.
+5. Click Back Up.
+6. Keep the downloaded `grbl-settings-YYYYMMDD-HHMMSS.txt` file somewhere safe.
+
+Restore workflow:
+
+1. Connect to the same GRBL controller or a compatible replacement controller.
+2. Open Settings > GRBL Settings > Backup.
+3. Click Choose Backup File and select the saved settings file.
+4. Confirm the displayed file contains the settings you expect.
+5. Click Flash Backup.
+6. Confirm the inline warning.
+7. Wait for the wizard to send the settings and read `$$` back from GRBL.
+
+Only flash backup files you trust. GRBL settings can change steps/mm, axis direction, limit behavior, homing behavior, spindle speed mapping, and laser mode.
+
+Safe editing rules:
+
+1. Back up the current settings before making changes.
+2. Change one group of settings at a time.
+3. Keep the machine idle and the router/spindle off while changing firmware settings.
+4. Test jog direction, travel distance, homing, limits, and probing before cutting again.
+5. If a change makes the machine behave incorrectly, reload the backup file and flash it back.
 
 ### Workspace Layout Buttons
 

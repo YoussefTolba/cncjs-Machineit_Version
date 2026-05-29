@@ -1,5 +1,4 @@
 import { ensureArray } from 'ensure-type';
-import * as gcodeParser from 'gcode-parser';
 
 export const isM0 = (x) => {
   const pattern = /^M0*0$/i; // matches 'M0', 'M00', 'm0', 'm00', and 'M000' (case-insensitive)
@@ -8,11 +7,6 @@ export const isM0 = (x) => {
 
 export const isM1 = (x) => {
   const pattern = /^M0*1$/i; // matches 'M1', 'M01', 'm1', 'm01', and 'M001' (case-insensitive)
-  return pattern.test(x);
-};
-
-export const isM3 = (x) => {
-  const pattern = /^M0*3$/i; // matches 'M3', 'M03', 'm3', 'm03', and 'M003' (case-insensitive)
   return pattern.test(x);
 };
 
@@ -53,35 +47,4 @@ export const replaceCommands = (gcode, commands, callback) => {
 export const replaceM6 = (gcode, callback) => {
   // M6, M06, m6, m06, and M006 all refer to the same command "M6"
   return replaceCommands(gcode, ['M0*6'], callback);
-};
-
-export const addSpindleStartPrompt = (gcode, message = 'Turn On Spindle') => {
-  const lines = ensureArray(gcode).join('\n').split(/\r?\n/);
-
-  return lines.flatMap(line => {
-    const trimmedLine = String(line).trim();
-    if (!trimmedLine) {
-      return [line];
-    }
-
-    let words = [];
-    try {
-      ({ words } = gcodeParser.parseLine(trimmedLine, {
-        flatten: true,
-        lineMode: 'stripped',
-      }));
-    } catch (err) {
-      return [line];
-    }
-
-    if (!words.find(isM3)) {
-      return [line];
-    }
-
-    return [
-      `%msg ${message}`,
-      'M0',
-      line,
-    ];
-  }).join('\n');
 };

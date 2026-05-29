@@ -134,6 +134,8 @@ Before moving near the stock, confirm the machine moves the way you expect.
 
 If any axis moves the wrong way, stop and fix the machine or GRBL configuration before cutting.
 
+Before editing GRBL direction, steps/mm, homing, or limit settings, open Settings > GRBL Settings and use Backup > Back Up. Keep the downloaded settings file so you can restore the controller if a change is wrong.
+
 ## 8. Prepare The First Job
 
 For the first cut, use a simple CAM file.
@@ -280,4 +282,3 @@ Before pressing Start, confirm:
 - Probe is removed or clear of motion.
 - Emergency stop is reachable.
 - You are watching the first move.
-

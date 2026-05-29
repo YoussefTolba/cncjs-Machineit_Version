@@ -1,6 +1,6 @@
 # CNCjs Machine It Version
 
-This repository is a customized CNCjs build for the Machine It CNC workflow. It is based on the open-source CNCjs project, but this repo is not meant to be a plain mirror of upstream CNCjs. It carries local machine workflow changes, a custom phone pendant, probing/autolevel tools, launcher scripts, and safety behavior specific to this setup.
+This repository is a customized CNCjs build for the Machine It CNC workflow. It is based on the open-source CNCjs project, but this repo is not meant to be a plain mirror of upstream CNCjs. It carries local machine workflow changes, a custom phone pendant, probing/autolevel tools, and launcher scripts specific to this setup.
 
 Upstream CNCjs is here: https://github.com/cncjs/cncjs
 
@@ -13,22 +13,7 @@ Upstream CNCjs is here: https://github.com/cncjs/cncjs
 - Surface mesh probing, skew measurement, and compensation tools
 - Tool-change and touch-probe routines
 - Shared spindle/coolant command builder used by both workspace and pendant
-- Server-side spindle safety prompt before `M3`
 - Local operator documentation in `docs/`
-
-## Safety Behavior
-
-When any `M3` command comes through the CNCjs command pipeline, this version inserts a user prompt before the spindle command is sent:
-
-```gcode
-%msg Turn On Spindle
-M0
-M3 ...
-```
-
-That logic lives in the shared server/controller path, so it applies to the desktop workspace, phone pendant, macros, uploaded G-code, and generated probing/autolevel G-code.
-
-The pendant also listens for the same feeder pause status as the workspace, so the operator sees a Continue/Stop prompt when CNCjs pauses for the spindle confirmation.
 
 ## Shared Command Logic
 
@@ -87,7 +72,7 @@ Node/package script:
 npm run win-dev
 ```
 
-Targeted tests used during recent spindle/prompt work:
+Targeted checks used during recent spindle and pendant work:
 
 ```bash
 npm test -- src/server/controllers/utils/__tests__/gcode.test.js --runInBand
