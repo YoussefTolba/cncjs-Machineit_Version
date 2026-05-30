@@ -48,12 +48,7 @@ const defaultState = {
       minimized: false,
       activeTab: 'xy-skew',
       xySkew: {
-        xLength: 500,
-        yDirection: '+',
-        maxTravel: 25,
-        retract: 2,
-        fastFeed: 200,
-        slowFeed: 50
+        cornerSpacing: 40
       }
     },
     axes: {

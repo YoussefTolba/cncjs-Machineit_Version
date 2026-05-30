@@ -18,8 +18,7 @@ const STAGES = {
 };
 
 const DEFAULT_XY_SKEW = {
-  squareSize: 40,
-  chamferSize: 4,
+  cornerSpacing: 40,
   diagonalAC: '',
   diagonalBD: ''
 };
@@ -108,6 +107,8 @@ class CalibrationWidget extends PureComponent {
 
   getInitialState() {
     const current = this.readXYSkewSettings(controller.settings);
+    const savedXYSkew = this.config.get('xySkew', {});
+
     return {
       minimized: this.config.get('minimized', false),
       isFullscreen: false,
@@ -121,7 +122,8 @@ class CalibrationWidget extends PureComponent {
       invalidFields: [],
       xySkew: {
         ...DEFAULT_XY_SKEW,
-        ...this.config.get('xySkew', {}),
+        ...savedXYSkew,
+        cornerSpacing: savedXYSkew.cornerSpacing || savedXYSkew.squareSize || DEFAULT_XY_SKEW.cornerSpacing,
         stage: STAGES.setup,
         result: null,
         currentEnabled: current.enabled,
@@ -231,8 +233,7 @@ class CalibrationWidget extends PureComponent {
 
   persistXYSkewSettings(xySkew) {
     this.config.set('xySkew', {
-      squareSize: xySkew.squareSize,
-      chamferSize: xySkew.chamferSize
+      cornerSpacing: xySkew.cornerSpacing
     });
   }
 
@@ -267,7 +268,7 @@ class CalibrationWidget extends PureComponent {
         xySkew.stage = STAGES.measure;
       }
 
-      if (key === 'squareSize' || key === 'chamferSize') {
+      if (key === 'cornerSpacing') {
         this.persistXYSkewSettings(xySkew);
       }
 
@@ -278,39 +279,34 @@ class CalibrationWidget extends PureComponent {
     });
   };
 
-  setPresetSquare = (squareSize) => {
+  setPresetSpacing = (cornerSpacing) => {
     this.setState(state => {
       const xySkew = {
         ...state.xySkew,
-        squareSize,
-        chamferSize: Math.max(1, Math.round(squareSize / 10)),
+        cornerSpacing,
         result: null
       };
       this.persistXYSkewSettings(xySkew);
 
       return {
-        invalidFields: state.invalidFields.filter(field => field !== 'squareSize' && field !== 'chamferSize'),
+        invalidFields: state.invalidFields.filter(field => field !== 'cornerSpacing'),
         xySkew
       };
     });
   };
 
   validateSetup() {
-    const { squareSize, chamferSize } = this.state.xySkew;
+    const { cornerSpacing } = this.state.xySkew;
     const invalidFields = [];
-    const square = Number(squareSize);
-    const chamfer = Number(chamferSize);
+    const spacing = Number(cornerSpacing);
 
-    if (!Number.isFinite(square) || square <= 0) {
-      invalidFields.push('squareSize');
-    }
-    if (!Number.isFinite(chamfer) || chamfer < 0 || chamfer >= square) {
-      invalidFields.push('chamferSize');
+    if (!Number.isFinite(spacing) || spacing <= 0) {
+      invalidFields.push('cornerSpacing');
     }
     if (invalidFields.length > 0) {
       this.setState({
         invalidFields,
-        status: 'Enter a valid square size and a smaller chamfer size.'
+        status: 'Enter a valid distance between adjacent measuring corners.'
       });
       return false;
     }
@@ -350,18 +346,14 @@ class CalibrationWidget extends PureComponent {
   };
 
   computeResult() {
-    const { squareSize, chamferSize, diagonalAC, diagonalBD } = this.state.xySkew;
-    const square = Number(squareSize);
-    const chamfer = Number(chamferSize);
+    const { cornerSpacing, diagonalAC, diagonalBD } = this.state.xySkew;
+    const spacing = Number(cornerSpacing);
     const ac = Number(diagonalAC);
     const bd = Number(diagonalBD);
     const invalidFields = [];
 
-    if (!Number.isFinite(square) || square <= 0) {
-      invalidFields.push('squareSize');
-    }
-    if (!Number.isFinite(chamfer) || chamfer < 0 || chamfer >= square) {
-      invalidFields.push('chamferSize');
+    if (!Number.isFinite(spacing) || spacing <= 0) {
+      invalidFields.push('cornerSpacing');
     }
     if (!Number.isFinite(ac) || ac <= 0) {
       invalidFields.push('diagonalAC');
@@ -373,16 +365,13 @@ class CalibrationWidget extends PureComponent {
       return { invalidFields, value: null };
     }
 
-    const effectiveSize = square - chamfer;
-    const rawFactor = ((ac * ac) - (bd * bd)) / (4 * effectiveSize * effectiveSize);
+    const rawFactor = ((ac * ac) - (bd * bd)) / (4 * spacing * spacing);
     const factor = clampXYSkewFactor(rawFactor);
 
     return {
       invalidFields: [],
       value: {
-        squareSize: square,
-        chamferSize: chamfer,
-        effectiveSize,
+        cornerSpacing: spacing,
         diagonalAC: ac,
         diagonalBD: bd,
         diagonalDifference: ac - bd,
@@ -406,7 +395,7 @@ class CalibrationWidget extends PureComponent {
     if (!result.value) {
       this.setState({
         invalidFields: result.invalidFields,
-        status: 'Enter valid square, chamfer, AC, and BD measurements.'
+        status: 'Enter valid corner spacing, AC, and BD measurements.'
       });
       return;
     }
@@ -634,7 +623,7 @@ class CalibrationWidget extends PureComponent {
     return (
       <div className={styles.panel}>
         <div className={styles.panelHeader}>
-          <h3>1. Prepare Chamfered Square</h3>
+          <h3>1. Set Corner Spacing</h3>
           <span className={styles.badgeWarn}>Skew Off During Cut</span>
         </div>
         <div className={styles.presetRow}>
@@ -642,19 +631,18 @@ class CalibrationWidget extends PureComponent {
             <button
               key={size}
               type="button"
-              className={Number(xySkew.squareSize) === size ? styles.presetActive : styles.preset}
-              onClick={() => this.setPresetSquare(size)}
+              className={Number(xySkew.cornerSpacing) === size ? styles.presetActive : styles.preset}
+              onClick={() => this.setPresetSpacing(size)}
             >
               {size} mm
             </button>
           ))}
         </div>
         <div className={styles.formGrid}>
-          {this.renderMeasurementField('squareSize', 'Square side length', '1')}
-          {this.renderMeasurementField('chamferSize', 'Chamfer size', '0.1')}
+          {this.renderMeasurementField('cornerSpacing', 'Distance between adjacent corners', '0.001')}
         </div>
         <div className={styles.note}>
-          Use any square size the machine can cut cleanly. The chamfer gives repeatable measuring points at A, B, C, and D.
+          Use any size the machine can cut cleanly. The chamfer size does not matter; the A-B, B-C, C-D, and D-A distances should be the same.
         </div>
         <div className={styles.buttonRow}>
           <button
@@ -731,7 +719,7 @@ class CalibrationWidget extends PureComponent {
           </div>
         </div>
         <div className={styles.note}>
-          Formula: factor = (AC^2 - BD^2) / (4 * effective size^2), where effective size is side length minus chamfer size.
+          Formula: factor = (AC^2 - BD^2) / (4 * corner spacing^2).
         </div>
         <div className={styles.buttonRow}>
           <button type="button" className={`${styles.btn} ${styles.btnPrimary} ${styles.btnExpand}`} onClick={this.calculate}>
@@ -777,9 +765,9 @@ class CalibrationWidget extends PureComponent {
         {result && (
           <div className={styles.resultDetails}>
             <div>AC {result.diagonalAC.toFixed(3)} / BD {result.diagonalBD.toFixed(3)}</div>
-            <div>Effective size {result.effectiveSize.toFixed(3)}</div>
+            <div>Corner spacing {result.cornerSpacing.toFixed(3)}</div>
             <div>Raw factor {result.rawFactor.toFixed(6)} ({result.rawAngle.toFixed(4)} deg)</div>
-            <div>{result.signFlipped ? 'Sign has been flipped by the user.' : 'Original sign is based on AC minus BD.'}</div>
+            <div>{result.signFlipped ? 'Sign is flipped. The correction direction is reversed.' : 'Sign is based on AC minus BD.'}</div>
           </div>
         )}
         <div className={styles.buttonRow}>
