@@ -306,7 +306,7 @@ class CalibrationWidget extends PureComponent {
     if (invalidFields.length > 0) {
       this.setState({
         invalidFields,
-        status: 'Enter a valid distance between adjacent measuring corners.'
+        status: 'Enter a valid programmed test cut size.'
       });
       return false;
     }
@@ -395,7 +395,7 @@ class CalibrationWidget extends PureComponent {
     if (!result.value) {
       this.setState({
         invalidFields: result.invalidFields,
-        status: 'Enter valid corner spacing, AC, and BD measurements.'
+        status: 'Enter a valid programmed size, AC, and BD measurements.'
       });
       return;
     }
@@ -623,7 +623,7 @@ class CalibrationWidget extends PureComponent {
     return (
       <div className={styles.panel}>
         <div className={styles.panelHeader}>
-          <h3>1. Set Corner Spacing</h3>
+          <h3>1. Enter Test Cut Size</h3>
           <span className={styles.badgeWarn}>Skew Off During Cut</span>
         </div>
         <div className={styles.presetRow}>
@@ -639,10 +639,10 @@ class CalibrationWidget extends PureComponent {
           ))}
         </div>
         <div className={styles.formGrid}>
-          {this.renderMeasurementField('cornerSpacing', 'Distance between adjacent corners', '0.001')}
+          {this.renderMeasurementField('cornerSpacing', 'Programmed A-B / B-C size', '0.001')}
         </div>
         <div className={styles.note}>
-          Use any size the machine can cut cleanly. The chamfer size does not matter; the A-B, B-C, C-D, and D-A distances should be the same.
+          This is the size from the G-code, not another measurement. The chamfer size does not matter; A-B, B-C, C-D, and D-A are treated as equal.
         </div>
         <div className={styles.buttonRow}>
           <button
@@ -696,10 +696,14 @@ class CalibrationWidget extends PureComponent {
     return (
       <div className={styles.panel}>
         <div className={styles.panelHeader}>
-          <h3>3. Measure Corners</h3>
-          <span className={styles.badgeWarn}>A B C D</span>
+          <h3>3. Measure Two Diagonals</h3>
+          <span className={styles.badgeWarn}>2 Measurements</span>
         </div>
         <pre className={styles.diagram}>{'D -------- C\n|          |\n|          |\nA -------- B'}</pre>
+        <div className={styles.cutInstructions}>
+          <div>A = front-left, B = front-right, C = back-right, D = back-left.</div>
+          <div>Measure only A to C, then B to D.</div>
+        </div>
         <div className={styles.formGrid}>
           {this.renderMeasurementField('diagonalAC', 'Diagonal A to C')}
           {this.renderMeasurementField('diagonalBD', 'Diagonal B to D')}
@@ -719,7 +723,7 @@ class CalibrationWidget extends PureComponent {
           </div>
         </div>
         <div className={styles.note}>
-          Formula: factor = (AC^2 - BD^2) / (4 * corner spacing^2).
+          Formula: factor = (AC^2 - BD^2) / (4 * programmed size^2).
         </div>
         <div className={styles.buttonRow}>
           <button type="button" className={`${styles.btn} ${styles.btnPrimary} ${styles.btnExpand}`} onClick={this.calculate}>
@@ -765,7 +769,7 @@ class CalibrationWidget extends PureComponent {
         {result && (
           <div className={styles.resultDetails}>
             <div>AC {result.diagonalAC.toFixed(3)} / BD {result.diagonalBD.toFixed(3)}</div>
-            <div>Corner spacing {result.cornerSpacing.toFixed(3)}</div>
+            <div>Programmed size {result.cornerSpacing.toFixed(3)}</div>
             <div>Raw factor {result.rawFactor.toFixed(6)} ({result.rawAngle.toFixed(4)} deg)</div>
             <div>{result.signFlipped ? 'Sign is flipped. The correction direction is reversed.' : 'Sign is based on AC minus BD.'}</div>
           </div>
