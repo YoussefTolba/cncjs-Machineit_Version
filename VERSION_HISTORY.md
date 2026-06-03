@@ -2,6 +2,28 @@
 
 This file records the practical work completed in each local version of this customized CNCjs workspace.
 
+## v0.3.0 - GRBL Settings And XY Skew Calibration
+
+This version adds desktop calibration tools for GRBL firmware setup and persistent XY skew compensation. The workflow keeps CNCjs responsible for guidance and settings, while the custom GRBL firmware handles the actual motion correction.
+
+Included in this version:
+
+- Added a GRBL Settings wizard for reading `$$`, backing up settings, editing grouped firmware values, loading backups, and flashing trusted `$number=value` files back to the controller.
+- Added labels for the custom Machine It GRBL skew settings: `$140` for XY skew enable and `$141` for XY skew factor.
+- Added a standalone Calibration widget for XY skew test-cut calibration.
+- Added enable and disable buttons for firmware skew compensation, sending `$140=1` or `$140=0`.
+- Added a guided test-cut workflow that turns skew compensation off before the calibration cut, asks the operator to run a chamfered square test program, then accepts the programmed square size plus only two diagonal measurements: A-C and B-D.
+- Clarified corner naming in the wizard: A is front-left, B is front-right, C is back-right, and D is back-left.
+- Added automatic factor and angle calculation from the two measured diagonals. The wizard clamps the factor to the firmware range before sending it as `$141`.
+- Added a Flip Sign control so the operator can reverse the correction direction if a follow-up test cut gets worse.
+- Added documentation for the Calibration widget, the diagonal measurement sequence, and the GRBL commands sent by the wizard.
+
+Validation completed before capture:
+
+- Focused ESLint passed for the Calibration widget and default workspace state.
+- Development webpack build completed successfully with existing lint warnings only.
+- Documentation updates completed and the DOCX user manual was verified.
+
 ## v0.2.0 - Pendant Probing Parity And Launcher Fixes
 
 This version makes the phone pendant match the desktop workspace probing/autolevel workflow more closely, with the desktop workspace remaining the source of truth. It also fixes the Windows launch flow after testing the real browser/server behavior on the local machine.

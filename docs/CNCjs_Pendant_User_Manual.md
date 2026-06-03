@@ -3,7 +3,7 @@ title: CNCjs + Phone Pendant User Manual
 machine: Hobby CNC router, MKS DLC V2, GRBL-compatible firmware
 units: millimeters
 work_coordinate: G54 / P1 by default
-updated: 2026-05-17
+updated: 2026-06-03
 ---
 
 # CNCjs + Phone Pendant User Manual
@@ -187,6 +187,7 @@ The normal desktop/tablet workspace is the best place to set up a job. Use it wh
 | Console | Send or inspect raw GRBL commands and responses |
 | Jobs / Files | Load, preview, start, pause, and stop G-code jobs |
 | Settings | App settings, workspace records, events, and the GRBL Settings wizard |
+| Calibration | XY skew test-cut calibration for the custom GRBL `$140` and `$141` settings |
 
 ## GRBL Settings Wizard
 
@@ -232,6 +233,45 @@ Only flash backup files you trust. A GRBL settings file can change steps/mm, axi
 3. Keep the machine idle and the router/spindle off while changing firmware settings.
 4. Test jog direction, travel distance, homing, limits, and probing before cutting again.
 5. If a change makes the machine behave incorrectly, reload the backup file and flash it back.
+
+## Calibration Widget
+
+Use the Calibration widget for the Machine It GRBL XY skew compensation workflow. This wizard does not rewrite loaded G-code. It only calculates the firmware skew value and sends GRBL settings; the custom firmware applies the correction during motion planning.
+
+Open the widget from the desktop workspace after connecting to GRBL. At the start of the session, the widget reads `$$` so it can show the current `$140` skew enable state, the current `$141` skew factor, and the matching skew angle.
+
+| Control | What it does |
+| --- | --- |
+| Enable Skew | Sends `$140=1` |
+| Disable Skew | Sends `$140=0` |
+| Start & Turn Off Skew | Sends `$140=0` before the calibration test cut |
+| Flip Sign | Reverses the calculated correction direction while keeping the same size of correction |
+| Apply & Turn On | Sends `$141=<factor>`, then `$140=1`, then reads `$$` again |
+
+### XY Skew Test-Cut Workflow
+
+1. Connect to the GRBL controller and make sure the machine is idle.
+2. Open the Calibration widget.
+3. Enter the programmed square size from the calibration G-code. This is the straight side length, such as 20 mm, 40 mm, 100 mm, or any other size you actually cut.
+4. Click Start & Turn Off Skew. The wizard sends `$140=0`.
+5. Load and run the chamfered square calibration G-code.
+6. When the cut is finished, return to the Calibration widget and click the cut-done step.
+7. Identify the corners this way: A is front-left, B is front-right, C is back-right, and D is back-left.
+8. Measure only the two opposite-corner distances: A-C and B-D.
+9. Enter the A-C and B-D measurements in millimeters.
+10. Review the calculated skew factor and angle.
+11. If a follow-up test cut gets worse, use Flip Sign and apply the opposite sign.
+12. Click Apply & Turn On. The wizard sends the clamped `$141` factor and turns `$140` back on.
+
+The calculation is based on the two diagonal measurements:
+
+```text
+factor = (AC^2 - BD^2) / (4 * programmed_size^2)
+```
+
+The firmware limit is `-0.05` to `+0.05` mm/mm. The wizard clamps the value to that range before sending it to GRBL.
+
+Do not run this wizard during an active job except for returning to it after the calibration cut has fully finished. Use the normal job controls to run the test program, then come back to the wizard for measurement entry and firmware update.
 
 ## Phone Pendant Overview
 

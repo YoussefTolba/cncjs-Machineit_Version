@@ -502,5 +502,17 @@ export const GRBL_SETTINGS = [
     message: 'Z-axis maximum travel',
     units: 'millimeters',
     description: 'Maximum Z-axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances.'
+  },
+  {
+    setting: '$140',
+    message: 'XY skew enable',
+    units: 'boolean',
+    description: 'Enables firmware XY skew correction.'
+  },
+  {
+    setting: '$141',
+    message: 'XY skew factor',
+    units: 'mm/mm',
+    description: 'Y correction per X travel for firmware XY skew correction.'
   }
 ];

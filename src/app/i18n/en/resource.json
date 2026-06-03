@@ -556,6 +556,8 @@
   "Flip Horizontally": "Flip Horizontally",
   "Flip Vertically": "Flip Vertically",
   "Crosshair": "Crosshair",
+  "Calibration Widget": "Calibration Widget",
+  "This widget contains machine calibration wizards for GRBL firmware settings.": "This widget contains machine calibration wizards for GRBL firmware settings.",
   "Ready to read GRBL settings.": "Ready to read GRBL settings.",
   "Open a GRBL controller port to edit firmware settings.": "Open a GRBL controller port to edit firmware settings.",
   "Connected. Reading GRBL settings...": "Connected. Reading GRBL settings...",

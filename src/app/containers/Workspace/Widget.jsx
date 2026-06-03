@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import AxesWidget from 'app/widgets/Axes';
 import AutolevelWidget from 'app/widgets/Autolevel';
+import CalibrationWidget from 'app/widgets/Calibration';
 import ConnectionWidget from 'app/widgets/Connection';
 import ConsoleWidget from 'app/widgets/Console';
 import GCodeWidget from 'app/widgets/GCode';
@@ -17,6 +18,7 @@ const getWidgetByName = (name) => {
   return {
     'autolevel': AutolevelWidget,
     'axes': AxesWidget,
+    'calibration': CalibrationWidget,
     'connection': ConnectionWidget,
     'console': ConsoleWidget,
     'gcode': GCodeWidget,

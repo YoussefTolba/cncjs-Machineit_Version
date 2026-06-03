@@ -9,8 +9,9 @@ Upstream CNCjs is here: https://github.com/cncjs/cncjs
 - Machine It phone pendant at `/pendant/`
 - Windows launch scripts for the local workspace and phone pendant
 - GRBL-focused startup workflow for the local machine
+- Calibration umbrella with GRBL settings and XY skew test-cut wizards
 - Autolevel and probing controls for both workspace and pendant
-- Surface mesh probing, skew measurement, and compensation tools
+- Surface mesh probing, skew measurement, and firmware skew compensation tools
 - Tool-change and touch-probe routines
 - Shared spindle/coolant command builder used by both workspace and pendant
 - Local operator documentation in `docs/`

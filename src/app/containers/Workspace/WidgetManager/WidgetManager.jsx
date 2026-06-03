@@ -86,6 +86,13 @@ class WidgetManager extends PureComponent {
         disabled: false
       },
       {
+        id: 'calibration',
+        caption: i18n._('Calibration Widget'),
+        details: i18n._('This widget contains machine calibration wizards for GRBL firmware settings.'),
+        visible: true,
+        disabled: false
+      },
+      {
         id: 'tool',
         caption: i18n._('Tool Widget'),
         details: i18n._('This widget manages workflows for tool changes.'),

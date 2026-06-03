@@ -1,5 +1,17 @@
 # cncjs
 
+## Machine It Build - 2026-06-03
+
+### Added
+
+- Added the GRBL Settings wizard for reading, backing up, editing, and flashing GRBL firmware settings from the desktop workspace.
+- Added the Calibration widget with an XY skew test-cut wizard for the custom Machine It GRBL `$140`/`$141` firmware skew settings.
+- Added diagonal-only skew calculation using the programmed square size plus A-C and B-D measurements, with displayed factor and angle.
+
+### Changed
+
+- Documented the new calibration workflow, firmware commands, change history, and user manual guidance for XY skew compensation.
+
 ## 1.11.1
 
 ### Patch Changes
