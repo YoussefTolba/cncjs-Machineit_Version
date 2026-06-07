@@ -3,6 +3,7 @@ cd /d "%~dp0"
 
 set "NODE_ENV=development"
 set "PENDANT_DIR=%CD%\pendants\phone"
+set "AUTOLEVEL_SHARED_DIR=%CD%\src\shared\autolevel"
 
 echo Building CNCjs development files...
 powershell -ExecutionPolicy Bypass -File scripts\build-dev.ps1
@@ -49,7 +50,7 @@ if errorlevel 1 (
 echo Starting CNCjs server on port 8000...
 call :IsPortListening 8000
 if errorlevel 1 (
-    start "CNCjs Server 8000" /D "%CD%" cmd /k node .\bin\cncjs --port 8000 --mount "/pendant:%PENDANT_DIR%"
+    start "CNCjs Server 8000" /D "%CD%" cmd /k node .\bin\cncjs --port 8000 --mount "/pendant:%PENDANT_DIR%" --mount "/autolevel-shared:%AUTOLEVEL_SHARED_DIR%"
 ) else (
     echo Port 8000 is already running. Reusing it.
 )

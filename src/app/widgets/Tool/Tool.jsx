@@ -13,11 +13,8 @@ import Image from 'app/components/Image';
 import { Tooltip } from 'app/components/Tooltip';
 import i18n from 'app/lib/i18n';
 import { mapValueToUnits } from 'app/lib/units';
+import toolProbe from 'shared/tool-probe';
 import {
-  GRBL,
-  MARLIN,
-  SMOOTHIE,
-  TINYG,
   METRIC_UNITS
 } from '../../constants';
 import {
@@ -32,21 +29,10 @@ import styles from './index.styl';
 import insertAtCaret from './insertAtCaret';
 import variables from './variables';
 
-const TOOL_PROBE_OVERRIDE_WCS_EXAMPLE = `
-; Probe the tool
-G91 [tool_probe_command] F[tool_probe_feedrate] Z[tool_probe_z - mposz - tool_probe_distance]
-; Set coordinate system offset
-G10 L20 P[mapWCSToPValue(modal.wcs)] Z[touch_plate_height]
-`.trim();
-
-const TOOL_PROBE_OVERRIDE_TLO_EXAMPLE = `
-; Probe the tool
-G91 [tool_probe_command] F[tool_probe_feedrate] Z[tool_probe_z - mposz - tool_probe_distance]
-; Pause for 1 second
-%wait 1
-; Set tool length offset
-G43.1 Z[posz - touch_plate_height]
-`.trim();
+const {
+  wcs: TOOL_PROBE_OVERRIDE_WCS_EXAMPLE,
+  tlo: TOOL_PROBE_OVERRIDE_TLO_EXAMPLE
+} = toolProbe.toolProbeOverrideExamples;
 
 const copyToClipboard = value => {
   const el = document.createElement('textarea');
@@ -196,56 +182,11 @@ class Tool extends PureComponent {
     ].includes(toolChangePolicy);
     const isToolProbeCustomCommandsView = (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_CUSTOM_PROBING);
 
-    const toolProbeCommands = (() => {
-      const lines = [];
-
-      if (controller.type === MARLIN) {
-        lines.push('; Probe the tool');
-        lines.push('G91 [tool_probe_command] F[tool_probe_feedrate] Z[tool_probe_z - posz - tool_probe_distance]');
-        if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_WCS) {
-          lines.push('; Set the current work Z position (posz) to the touch plate height');
-          lines.push('G92 Z[touch_plate_height]');
-        } else if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_TLO) {
-          lines.push('; Pause for 1 second');
-          lines.push('%wait 1');
-          lines.push('; Adjust the work Z position by subtracting the touch plate height from the current work Z position (posz)');
-          lines.push('G92 Z[posz - touch_plate_height]');
-        }
-        return lines.join('\n');
-      }
-
-      if (controller.type === GRBL || controller.type === SMOOTHIE) {
-        lines.push('; Probe the tool');
-        lines.push('G91 [tool_probe_command] F[tool_probe_feedrate] Z[tool_probe_z - mposz - tool_probe_distance]');
-        if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_WCS) {
-          lines.push('; Set coordinate system offset');
-          lines.push('G10 L20 P[mapWCSToPValue(modal.wcs)] Z[touch_plate_height]');
-        } else if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_TLO) {
-          lines.push('; Pause for 1 second');
-          lines.push('%wait 1');
-          lines.push('; Set tool length offset');
-          lines.push('G43.1 Z[posz - touch_plate_height]');
-        }
-        return lines.join('\n');
-      }
-
-      if (controller.type === TINYG) {
-        lines.push('; Probe the tool');
-        lines.push('G91 [tool_probe_command] F[tool_probe_feedrate] Z[tool_probe_z - mposz - tool_probe_distance]');
-        if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_WCS) {
-          lines.push('; Set coordinate system offset');
-          lines.push('G10 L20 P[mapWCSToPValue(modal.wcs)] Z[touch_plate_height]');
-        } else if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_TLO) {
-          lines.push('; Pause for 1 second');
-          lines.push('%wait 1');
-          lines.push('; Set tool length offset');
-          lines.push('{tofz:[posz - touch_plate_height]}');
-        }
-        return lines.join('\n');
-      }
-
-      return lines.join('\n');
-    })();
+    const toolProbeCommands = toolProbe.buildToolProbeCommandText(
+      controller.type,
+      toolChangePolicy,
+      { includeComments: true }
+    );
 
     const handleClickCopyToolProbeCommands = (event) => {
       copyToClipboard(toolProbeCommands);

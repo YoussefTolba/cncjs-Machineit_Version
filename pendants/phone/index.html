@@ -199,20 +199,7 @@
         <button type="button" class="mode-button active" data-probe-mode="outer">Outer</button>
         <button type="button" class="mode-button" data-probe-mode="inner">Inner</button>
       </div>
-      <div class="probe-grid">
-        <button data-probe-type="corner" data-probe-arg="TL" title="Back Left Corner"><span class="probe-icon">&#9484;</span></button>
-        <button data-probe-type="edge" data-probe-arg="Y+" title="Back Edge">T</button>
-        <button data-probe-type="corner" data-probe-arg="TR" title="Back Right Corner"><span class="probe-icon">&#9488;</span></button>
-        <button data-probe-type="z_touchplate" title="Z Touchplate" class="probe-shape"><i class="probe-arrow">&#8595;</i><span>Z Plate</span></button>
-        <button data-probe-type="edge" data-probe-arg="X-" title="Left Edge"><span class="probe-icon">&#9500;</span></button>
-        <button data-probe-type="surface" title="Probe Z Surface" class="probe-center">Z</button>
-        <button data-probe-type="edge" data-probe-arg="X+" title="Right Edge"><span class="probe-icon">&#9508;</span></button>
-        <button data-probe-type="boss" title="Block/Boss Center" class="probe-shape"><i class="probe-square"></i><span id="bossProbeLabel">Block</span></button>
-        <button data-probe-type="corner" data-probe-arg="BL" title="Front Left Corner"><span class="probe-icon">&#9492;</span></button>
-        <button data-probe-type="edge" data-probe-arg="Y-" title="Front Edge"><span class="probe-icon">&#9524;</span></button>
-        <button data-probe-type="corner" data-probe-arg="BR" title="Front Right Corner"><span class="probe-icon">&#9496;</span></button>
-        <button data-probe-type="pocket" title="Hole Center" class="probe-shape"><i class="probe-circle"></i><span>Hole</span></button>
-      </div>
+      <div id="probeGrid" class="probe-grid"></div>
       <div class="row">
         <label>
           Boss Axis
@@ -221,32 +208,10 @@
             <option value="y">Y</option>
           </select>
         </label>
-        <button data-probe-type="tool_change" class="small">Tool Change</button>
       </div>
       <details class="probe-settings">
         <summary>Probe Settings</summary>
-        <div class="settings-grid">
-          <label>Height<input id="height" type="number" step="0.01"></label>
-          <label>Margin<input id="margin" type="number" step="0.01"></label>
-          <label>Grid Size<input id="grid" type="number" step="1"></label>
-          <label>Probe Dia<input id="probeDia" type="number" step="0.01"></label>
-          <label>Deflection<input id="probeDeflection" type="number" step="0.01"></label>
-          <label>Retract<input id="retract" type="number" step="0.01"></label>
-          <label>Max Travel<input id="maxTravel" type="number" step="0.01"></label>
-          <label>Safe Z<input id="safeZ" type="number" step="0.01"></label>
-          <label>Slow Feed<input id="feedSlow" type="number" step="0.01"></label>
-          <label>Fast Feed<input id="feedFast" type="number" step="0.01"></label>
-          <label>Plate Thick.<input id="plateThickness" type="number" step="0.01"></label>
-          <label>Skew Spacing<input id="probeSpacing" type="number" step="0.01"></label>
-          <label>Corner Depth<input id="probeDepth" type="number" step="0.01"></label>
-          <label>Stock X<input id="sizeX" type="number" step="0.01"></label>
-          <label>Stock Y<input id="sizeY" type="number" step="0.01"></label>
-          <label>Tool Probe X<input id="toolProbeX" type="number" step="0.01"></label>
-          <label>Tool Probe Y<input id="toolProbeY" type="number" step="0.01"></label>
-          <label>Tool Probe Z<input id="toolProbeZ" type="number" step="0.01"></label>
-          <label>Safe Z (Mach)<input id="safeZMachine" type="number" step="0.01"></label>
-          <label>Travel Speed<input id="travelSpeed" type="number" step="0.01"></label>
-        </div>
+        <div id="probeSettingsGroups"></div>
         <div class="settings-actions">
           <button type="button" data-autolevel-action="save-settings" class="small primary">Save Settings</button>
           <button type="button" data-autolevel-action="refresh" class="small">Refresh</button>
@@ -297,6 +262,8 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/shared/machine-commands.js"></script>
+  <script src="/shared/tool-probe.js"></script>
+  <script src="/autolevel-shared/probingShared.js"></script>
   <script src="probing.js"></script>
   <script src="app.js"></script>
 </body>

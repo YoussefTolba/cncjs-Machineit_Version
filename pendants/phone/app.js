@@ -38,7 +38,7 @@
 
   var logEl = $('log');
   var buttons = Array.prototype.slice.call(document.querySelectorAll('button'));
-  var probing = window.CNCjsPendantProbing || null;
+  var probing = window.CNCjsAutolevelProbing || window.CNCjsPendantProbing || null;
   var machineCommands = window.CNCjsMachineCommands || {
     buildCoolantCommand: function (code) {
       return String(code || '').toUpperCase();
@@ -78,6 +78,7 @@
       button.disabled = !connected && button.id !== 'refreshPortsButton';
     });
     renderCustomCommands();
+    renderProbeButtons();
   }
 
   function signin(name, password) {
@@ -395,7 +396,9 @@
         probing ? probing.defaultSettings : {},
         JSON.parse(json || '{}')
       );
+      renderProbeSettings();
       applyProbeSettingsToInputs();
+      renderProbeButtons();
       log('Autolevel settings loaded');
     } catch (err) {
       log('Could not parse autolevel settings: ' + err.message);
@@ -480,39 +483,17 @@
     Object.keys(settings).forEach(function (key) {
       var element = $(key);
       if (element) {
-        element.value = settings[key];
+        if (element.type === 'checkbox') {
+          element.checked = !!settings[key];
+        } else {
+          element.value = settings[key];
+        }
       }
     });
   }
 
   function validateProbeSettings(settings) {
-    var invalid = [];
-    var finiteFields = ['toolProbeX', 'toolProbeY', 'toolProbeZ', 'safeZMachine'];
-    var positiveFields = ['height', 'probeDia', 'sizeX', 'sizeY', 'maxTravel', 'feedSlow', 'feedFast', 'travelSpeed'];
-    var nonNegativeFields = ['margin', 'probeDeflection', 'retract', 'safeZ', 'plateThickness', 'probeSpacing', 'probeDepth'];
-
-    finiteFields.forEach(function (key) {
-      if (!Number.isFinite(Number(settings[key]))) {
-        invalid.push(key);
-      }
-    });
-    positiveFields.forEach(function (key) {
-      if (!Number.isFinite(Number(settings[key])) || Number(settings[key]) <= 0) {
-        invalid.push(key);
-      }
-    });
-    nonNegativeFields.forEach(function (key) {
-      if (!Number.isFinite(Number(settings[key])) || Number(settings[key]) < 0) {
-        invalid.push(key);
-      }
-    });
-    if (!Number.isFinite(Number(settings.grid)) || Number(settings.grid) < 2) {
-      invalid.push('grid');
-    }
-    if ((Number(settings.probeDia) / 2) - Number(settings.probeDeflection) < 0) {
-      invalid.push('probeDia');
-      invalid.push('probeDeflection');
-    }
+    var invalid = probing && probing.validateSettings ? probing.validateSettings(settings) : [];
 
     Array.prototype.slice.call(document.querySelectorAll('.settings-grid input')).forEach(function (input) {
       input.classList.toggle('invalid', invalid.indexOf(input.id) >= 0);
@@ -529,6 +510,142 @@
     if ($('bossProbeLabel')) {
       $('bossProbeLabel').textContent = state.probeMode === 'inner' ? 'Pocket' : 'Block';
     }
+    renderProbeButtons();
+  }
+
+  function renderProbeButtons() {
+    var grid = $('probeGrid');
+    if (!grid || !probing) {
+      return;
+    }
+    var settings = Object.assign({}, probing.defaultSettings || {}, state.autolevelSettings);
+    var buttonsToRender = probing.getVisibleProbeButtons
+      ? probing.getVisibleProbeButtons(settings)
+      : (probing.probeButtons || []);
+
+    grid.innerHTML = '';
+    buttonsToRender.forEach(function (button, index) {
+      var label = state.probeMode === 'inner' && button.type === 'boss' ? 'Pocket' : button.label;
+      var title = button.title;
+      if (state.probeMode === 'inner' && button.type === 'boss') {
+        title = 'Inner Pocket Center';
+      } else if (state.probeMode === 'inner' && (button.type === 'corner' || button.type === 'edge')) {
+        title = 'Inner ' + button.title;
+      }
+
+      var el = document.createElement('button');
+      el.type = 'button';
+      el.disabled = !state.connected;
+      el.title = title;
+      el.setAttribute('data-probe-type', button.type);
+      if (button.arg) {
+        el.setAttribute('data-probe-arg', button.arg);
+      }
+      if (button.center) {
+        el.classList.add('probe-center');
+      }
+      if (button.shape) {
+        el.classList.add('probe-shape');
+      }
+      if (button.full) {
+        el.classList.add('full-probe-button');
+      }
+
+      if (button.shape) {
+        el.appendChild(renderShapeIcon(button));
+        var span = document.createElement('span');
+        if (button.type === 'boss') {
+          span.id = 'bossProbeLabel';
+        }
+        span.textContent = label;
+        el.appendChild(span);
+      } else {
+        var icon = document.createElement('span');
+        icon.className = 'probe-icon';
+        icon.textContent = label;
+        el.appendChild(icon);
+      }
+
+      el.setAttribute('data-probe-index', String(index));
+      grid.appendChild(el);
+    });
+  }
+
+  function renderShapeIcon(button) {
+    var icon = document.createElement('i');
+    if (button.icon === 'fa-arrow-down') {
+      icon.className = 'probe-arrow';
+      icon.textContent = '\u2193';
+    } else if (button.icon === 'fa-circle-o') {
+      icon.className = 'probe-circle';
+    } else if (button.icon === 'fa-square-o') {
+      icon.className = 'probe-square';
+    } else if (button.icon === 'fa-exchange') {
+      icon.className = 'probe-exchange';
+      icon.textContent = '\u21c4';
+    }
+    return icon;
+  }
+
+  function renderProbeSettings() {
+    var container = $('probeSettingsGroups');
+    if (!container || !probing) {
+      return;
+    }
+    container.innerHTML = '';
+    (probing.settingGroups || []).forEach(function (group) {
+      var groupEl = document.createElement('div');
+      groupEl.className = 'settings-group';
+      var header = document.createElement('div');
+      header.className = 'settings-group-header';
+      var title = document.createElement('h5');
+      title.textContent = group.title;
+      header.appendChild(title);
+
+      if (group.title === 'Tool Change') {
+        var switchLabel = document.createElement('label');
+        switchLabel.className = 'switch';
+        switchLabel.title = 'Show/Hide Tool Change Button';
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'showToolChange';
+        checkbox.checked = !!state.autolevelSettings.showToolChange;
+        checkbox.addEventListener('change', function () {
+          state.autolevelSettings.showToolChange = checkbox.checked;
+          renderProbeButtons();
+        });
+        var slider = document.createElement('span');
+        slider.className = 'slider';
+        switchLabel.appendChild(checkbox);
+        switchLabel.appendChild(slider);
+        header.appendChild(switchLabel);
+      }
+
+      groupEl.appendChild(header);
+
+      var grid = document.createElement('div');
+      grid.className = 'settings-grid';
+      group.fields.forEach(function (field) {
+        var key = field[0];
+        var label = field[1];
+        var tooltip = field[2];
+        var fieldLabel = document.createElement('label');
+        fieldLabel.className = 'field';
+        var span = document.createElement('span');
+        span.title = tooltip;
+        span.textContent = label;
+        var input = document.createElement('input');
+        input.id = key;
+        input.type = 'number';
+        input.step = key === 'grid' ? '1' : '0.01';
+        fieldLabel.appendChild(span);
+        fieldLabel.appendChild(input);
+        grid.appendChild(fieldLabel);
+      });
+
+      groupEl.appendChild(grid);
+      container.appendChild(groupEl);
+    });
   }
 
   function updateAutolevelTab(tab) {
@@ -589,56 +706,9 @@
     $('skewStatus').innerHTML = 'Skew: ' + Number(state.skewAngle || 0).toFixed(3) + '&deg;';
   }
 
-  var modalVisuals = {
-    corner: {
-      image: 'images/instruction-corner.png',
-      text: 'Position above the corner, within Max Travel distance.'
-    },
-    boss: {
-      image: 'images/instruction-boss.png',
-      text: 'Position outside the block: Left side (for X) or Front side (for Y).'
-    },
-    pocket: {
-      image: 'images/instruction-hole.png',
-      text: 'Position inside the hole, approximately centered.'
-    },
-    edge: {
-      image: 'images/instruction-side.png',
-      text: 'Position outside the stock, facing the target edge.'
-    },
-    skew: {
-      image: 'images/instruction-side.png',
-      text: 'Position the probe at the left-most point of the front edge.'
-    },
-    inner_corner: {
-      image: 'images/probing-inner-corner.png',
-      text: 'Position the probe inside the corner, within Max Travel distance of both inside walls.'
-    },
-    inner_boss: {
-      image: 'images/instruction-boss.png',
-      text: 'Position the probe inside the pocket, roughly near the center of the rectangular feature.'
-    },
-    inner_edge: {
-      image: 'images/instruction-side.png',
-      text: 'Position the probe inside the feature, facing the inside wall to probe.'
-    },
-    z_touchplate: {
-      image: 'images/instruction-touchplate.png',
-      text: 'Position directly above the touchplate surface.'
-    },
-    surface: {
-      image: 'images/instruction-corner.png',
-      text: 'Position directly above the workpiece surface.'
-    },
-    tool_change: {
-      image: 'images/change-tool.png',
-      text: 'Make sure the tool setter is in place before starting the tool change sequence.'
-    },
-    autolevel: {
-      image: 'images/instruction-corner.png',
-      text: 'Position the probe above the front-left corner of the mapping area.'
-    }
-  };
+  var modalVisuals = probing && probing.prefixModalVisualImages
+    ? probing.prefixModalVisualImages('images/')
+    : {};
 
   function escapeHtml(value) {
     return String(value || '').replace(/[&<>"']/g, function (char) {
@@ -863,24 +933,7 @@
 
   function buildSkewProbeGcode(includeMove) {
     var settings = getProbeSettingsFromInputs();
-    var params = probing ? probing.defaultSettings : {};
-    var spacing = Number(settings.probeSpacing || params.probeSpacing) || 50;
-    var maxTravel = Number(settings.maxTravel) || 0;
-    var fast = Number(settings.feedFast) || 0;
-    var slow = Number(settings.feedSlow) || 0;
-    var retract = Number(settings.retract) || 0;
-    var gcode = ['G91'];
-    if (includeMove) {
-      gcode.push('G0 X' + spacing);
-    }
-    gcode.push(
-      'G38.2 Y' + maxTravel + ' F' + fast,
-      'G0 Y-' + retract,
-      'G38.2 Y' + (retract + 1) + ' F' + slow,
-      'G0 Y-' + retract,
-      'G90'
-    );
-    return gcode.join('\n');
+    return probing.buildSkewProbeGcode(settings, includeMove);
   }
 
   function measureSkew() {
@@ -1194,6 +1247,8 @@
 
   $('baudSelect').value = state.baudrate;
   state.autolevelSettings = Object.assign({}, probing ? probing.defaultSettings : {});
+  renderProbeSettings();
+  renderProbeButtons();
   applyProbeSettingsToInputs();
   updateProbeMode(state.probeMode);
   updateAutolevelTab(state.autolevelTab);

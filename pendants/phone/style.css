@@ -440,6 +440,10 @@ p {
   padding: 5px;
 }
 
+.probe-grid .full-probe-button {
+  grid-column: span 4;
+}
+
 .probe-icon {
   font-size: 22px;
   line-height: 1;
@@ -477,6 +481,12 @@ p {
   border-radius: 50%;
 }
 
+.probe-exchange {
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+}
+
 .probe-settings summary {
   min-height: 42px;
   padding: 12px;
@@ -487,11 +497,84 @@ p {
   font-weight: 700;
 }
 
+.settings-group {
+  margin-top: 10px;
+}
+
+.settings-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+}
+
+.settings-group h5 {
+  margin: 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-top: 8px;
+  padding: 6px 0 0;
+  margin-top: 0;
+}
+
+.field {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.field span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 16px;
+  margin: 0;
+}
+
+.switch input {
+  width: 0;
+  height: 0;
+  min-height: 0;
+  opacity: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background-color: #ccc;
+}
+
+.slider:before {
+  position: absolute;
+  left: 2px;
+  bottom: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #fff;
+  content: "";
+  transition: .2s;
+}
+
+.switch input:checked + .slider {
+  background-color: #337ab7;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(14px);
 }
 
 .settings-actions {

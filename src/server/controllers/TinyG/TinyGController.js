@@ -9,6 +9,7 @@ import fsp from 'fs/promises';
 import * as gcodeParser from 'gcode-parser';
 import _ from 'lodash';
 import * as autolevel from '../../lib/autolevel';
+import toolProbe from '../../../shared/tool-probe';
 import SerialConnection from '../../lib/SerialConnection';
 import EventTrigger from '../../lib/EventTrigger';
 import Feeder from '../../lib/Feeder';
@@ -1678,107 +1679,24 @@ class TinyGController {
             'G21': METRIC_UNITS,
           }[modal.units];
           const toolChangePolicy = config.get('tool.toolChangePolicy', TOOL_CHANGE_POLICY_IGNORE_M6_COMMANDS);
-          const toolChangeX = mapPositionToUnits(config.get('tool.toolChangeX', 0), units);
-          const toolChangeY = mapPositionToUnits(config.get('tool.toolChangeY', 0), units);
-          const toolChangeZ = mapPositionToUnits(config.get('tool.toolChangeZ', 0), units);
-          const toolProbeX = mapPositionToUnits(config.get('tool.toolProbeX', 0), units);
-          const toolProbeY = mapPositionToUnits(config.get('tool.toolProbeY', 0), units);
-          const toolProbeZ = mapPositionToUnits(config.get('tool.toolProbeZ', 0), units);
-          const toolProbeCustomCommands = ensureString(config.get('tool.toolProbeCustomCommands')).split('\n');
-          const toolProbeCommand = config.get('tool.toolProbeCommand', 'G38.2');
-          const toolProbeDistance = mapValueToUnits(config.get('tool.toolProbeDistance', 1), units);
-          const toolProbeFeedrate = mapValueToUnits(config.get('tool.toolProbeFeedrate', 10), units);
-          const touchPlateHeight = mapValueToUnits(config.get('tool.touchPlateHeight', 0), units);
-
-          const context = {
-            'tool_change_x': toolChangeX,
-            'tool_change_y': toolChangeY,
-            'tool_change_z': toolChangeZ,
-            'tool_probe_x': toolProbeX,
-            'tool_probe_y': toolProbeY,
-            'tool_probe_z': toolProbeZ,
-            'tool_probe_command': toolProbeCommand,
-            'tool_probe_distance': toolProbeDistance,
-            'tool_probe_feedrate': toolProbeFeedrate,
-            'touch_plate_height': touchPlateHeight,
-
-            // internal functions
-            'mapWCSToPValue': function (wcs) {
-              return {
-                'G54': 1,
-                'G55': 2,
-                'G56': 3,
-                'G57': 4,
-                'G58': 5,
-                'G59': 6,
-              }[wcs] || 0;
-            },
+          const toolProbeSettings = {
+            toolChangeX: mapPositionToUnits(config.get('tool.toolChangeX', 0), units),
+            toolChangeY: mapPositionToUnits(config.get('tool.toolChangeY', 0), units),
+            toolChangeZ: mapPositionToUnits(config.get('tool.toolChangeZ', 0), units),
+            toolProbeX: mapPositionToUnits(config.get('tool.toolProbeX', 0), units),
+            toolProbeY: mapPositionToUnits(config.get('tool.toolProbeY', 0), units),
+            toolProbeZ: mapPositionToUnits(config.get('tool.toolProbeZ', 0), units),
+            toolProbeCommand: config.get('tool.toolProbeCommand', 'G38.2'),
+            toolProbeDistance: mapValueToUnits(config.get('tool.toolProbeDistance', 1), units),
+            toolProbeFeedrate: mapValueToUnits(config.get('tool.toolProbeFeedrate', 10), units),
+            touchPlateHeight: mapValueToUnits(config.get('tool.touchPlateHeight', 0), units)
           };
-
-          const lines = [];
-
-          // Wait until the planner queue is empty
-          lines.push('%wait');
-
-          // Remember original position and spindle state
-          lines.push('%_posx=posx');
-          lines.push('%_posy=posy');
-          lines.push('%_posz=posz');
-          lines.push('%_modal_spindle=modal.spindle');
-
-          // Stop the spindle
-          lines.push('M5');
-
-          // Absolute positioning
-          lines.push('G90');
-
-          // Move to the tool change position
-          lines.push('G53 G0 Z[tool_change_z]');
-          lines.push('G53 G0 X[tool_change_x] Y[tool_change_y]');
-          lines.push('%wait');
-
-          // Prompt the user to change the tool
-          lines.push('%msg Tool Change T[tool]');
-          lines.push('M0');
-
-          // Move to the tool probe position
-          lines.push('G53 G0 X[tool_probe_x] Y[tool_probe_y]');
-          lines.push('G53 G0 Z[tool_probe_z]');
-          lines.push('%wait');
-
-          if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_WCS) {
-            // Probe the tool
-            lines.push('G91 [tool_probe_command] F[tool_probe_feedrate] Z[tool_probe_z - mposz - tool_probe_distance]');
-            // Set coordinate system offset
-            lines.push('G10 L20 P[mapWCSToPValue(modal.wcs)] Z[touch_plate_height]');
-          } else if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_TLO) {
-            // Probe the tool
-            lines.push('G91 [tool_probe_command] F[tool_probe_feedrate] Z[tool_probe_z - mposz - tool_probe_distance]');
-            // Pause for 1 second
-            lines.push('%wait 1');
-            // Set tool length offset
-            lines.push('{tofz:[posz - touch_plate_height]}');
-          } else if (toolChangePolicy === TOOL_CHANGE_POLICY_MANUAL_TOOL_CHANGE_CUSTOM_PROBING) {
-            lines.push(...toolProbeCustomCommands);
-          }
-
-          // Move to the tool change position
-          lines.push('G53 G0 Z[tool_change_z]');
-          lines.push('G53 G0 X[tool_change_x] Y[tool_change_y]');
-          lines.push('%wait');
-
-          // Prompt the user to restart the spindle
-          lines.push('%msg Restart Spindle');
-          lines.push('M0');
-
-          // Restore the position and spindle state
-          lines.push('G90');
-          lines.push('G0 X[_posx] Y[_posy]');
-          lines.push('G0 Z[_posz]');
-          lines.push('[_modal_spindle]');
-
-          // Wait 5 seconds for the spindle to speed up
-          lines.push('%wait 5');
+          const context = toolProbe.buildToolChangeContext(toolProbeSettings);
+          const lines = toolProbe.buildToolChangeGcode(
+            this.type,
+            toolChangePolicy,
+            config.get('tool.toolProbeCustomCommands')
+          );
 
           this.command('gcode', lines, context);
         },

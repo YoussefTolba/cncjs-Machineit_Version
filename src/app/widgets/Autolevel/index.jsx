@@ -4,8 +4,8 @@ import Space from 'app/components/Space';
 import Widget from 'app/components/Widget';
 import controller from 'app/lib/controller';
 import WidgetConfig from '../WidgetConfig';
-import GCodeGenerator from './gcodeGenerator';
 import MeshVisualizer from './MeshVisualizer';
+import ProbingShared from '../../../shared/autolevel/probingShared';
 import styles from './index.styl';
 import imgBoss from './img/instruction-boss.png';
 import imgCorner from './img/instruction-corner.png';
@@ -15,131 +15,61 @@ import imgSide from './img/instruction-side.png';
 import imgTouchplate from './img/instruction-touchplate.png';
 import imgToolChange from './img/change-tool.png';
 
-const defaultSettings = {
-  height: 2,
-  margin: 10,
-  grid: 3,
-  probeDia: 1.92,
-  sizeX: 50,
-  sizeY: 50,
-  probeDeflection: 0.29,
-  retract: 3,
-  maxTravel: 25,
-  safeZ: 20,
-  feedSlow: 50,
-  feedFast: 200,
-  plateThickness: 0.5,
-  probeSpacing: 50,
-  probeDepth: 3,
-  toolProbeX: 618.5,
-  toolProbeY: 25,
-  toolProbeZ: 0,
-  safeZMachine: 0,
-  travelSpeed: 500,
-  showToolChange: false
-};
-
-const settingGroups = [
-  {
-    title: 'Compensation / Surface Map',
-    fields: [
-      ['height', 'Height (H)', 'Z travel height between points'],
-      ['margin', 'Margin (M)', 'Edge offset for mesh grid'],
-      ['grid', 'Grid Size', 'Number of X/Y grid points']
-    ]
-  },
-  {
-    title: 'Probe',
-    fields: [
-      ['probeDia', 'Probe Dia', 'Diameter of probe tip/shank'],
-      ['sizeX', 'Stock X', 'Approx. workpiece Width (X)'],
-      ['sizeY', 'Stock Y', 'Approx. workpiece Depth (Y)'],
-      ['probeDeflection', 'Deflection', 'Probe trigger overshoot offset'],
-      ['retract', 'Retract', 'Retract distance after touch'],
-      ['maxTravel', 'Max Travel', 'Max probe distance limit'],
-      ['safeZ', 'Safe Z', 'Safe height for rapids'],
-      ['feedSlow', 'Slow Feed', 'Fine probing feedrate'],
-      ['feedFast', 'Fast Feed', 'Initial probing feedrate'],
-      ['plateThickness', 'Plate Thick.', 'Touch plate Z-height param'],
-      ['probeSpacing', 'Skew Spacing', 'X offset for skew measurement'],
-      ['probeDepth', 'Corner Depth', 'Plunge depth for corner probing']
-    ]
-  },
-  {
-    title: 'Tool Change',
-    fields: [
-      ['toolProbeX', 'Tool Probe X', 'Machine X coordinate of tool probe'],
-      ['toolProbeY', 'Tool Probe Y', 'Machine Y coordinate of tool probe'],
-      ['toolProbeZ', 'Tool Probe Z', 'Machine Z height to approach probe'],
-      ['safeZMachine', 'Safe Z (Mach)', 'Machine Z safe travel height'],
-      ['travelSpeed', 'Travel Speed', 'Rapid travel speed']
-    ]
-  }
-];
-
-const probeButtons = [
-  { label: '\u250c', title: 'Back Left Corner', type: 'corner', arg: 'TL' },
-  { label: 'T', title: 'Back Edge', type: 'edge', arg: 'Y+' },
-  { label: '\u2510', title: 'Back Right Corner', type: 'corner', arg: 'TR' },
-  { label: 'Z Touchplate', title: 'Z Touchplate', type: 'z_touchplate', shape: true, icon: 'fa-arrow-down' },
-  { label: '\u251c', title: 'Left Edge', type: 'edge', arg: 'X-' },
-  { label: 'Z', title: 'Probe Z Surface', type: 'surface', center: true },
-  { label: '\u2524', title: 'Right Edge', type: 'edge', arg: 'X+' },
-  { label: 'Block', title: 'Block/Boss Center', type: 'boss', shape: true, icon: 'fa-square-o' },
-  { label: '\u2514', title: 'Front Left Corner', type: 'corner', arg: 'BL' },
-  { label: '\u2534', title: 'Front Edge', type: 'edge', arg: 'Y-' },
-  { label: '\u2518', title: 'Front Right Corner', type: 'corner', arg: 'BR' },
-  { label: 'Hole', title: 'Hole Center', type: 'pocket', shape: true, icon: 'fa-circle-o' }
-];
+const {
+  defaultSettings,
+  settingGroups,
+  probeButtons,
+  toolChangeButton
+} = ProbingShared;
 
 const modalVisuals = {
   corner: {
     image: imgCorner,
-    text: 'Position above the corner, within Max Travel distance.'
+    text: ProbingShared.modalVisuals.corner.text
   },
   boss: {
     image: imgBoss,
-    text: 'Position outside the block: Left side (for X) or Front side (for Y).'
+    text: ProbingShared.modalVisuals.boss.text
   },
   pocket: {
     image: imgHole,
-    text: 'Position inside the hole, approximately centered.'
+    text: ProbingShared.modalVisuals.pocket.text
   },
   edge: {
     image: imgSide,
-    text: 'Position outside the stock, facing the target edge.'
+    text: ProbingShared.modalVisuals.edge.text
   },
   skew: {
     image: imgSide,
-    text: 'Position the probe at the left-most point of the front edge.'
+    text: ProbingShared.modalVisuals.skew.text
   },
   inner_corner: {
     image: imgInnerCorner,
-    text: 'Position the probe inside the corner, within Max Travel distance of both inside walls.'
+    text: ProbingShared.modalVisuals.inner_corner.text
   },
   inner_boss: {
     image: imgBoss,
-    text: 'Position the probe inside the pocket, roughly near the center of the rectangular feature.'
+    text: ProbingShared.modalVisuals.inner_boss.text
   },
   inner_edge: {
     image: imgSide,
-    text: 'Position the probe inside the feature, facing the inside wall to probe.'
+    text: ProbingShared.modalVisuals.inner_edge.text
   },
   z_touchplate: {
     image: imgTouchplate,
-    text: 'Position directly above the touchplate surface.'
+    text: ProbingShared.modalVisuals.z_touchplate.text
   },
   surface: {
     image: imgCorner,
-    text: 'Position directly above the workpiece surface.'
+    text: ProbingShared.modalVisuals.surface.text
   },
   tool_change: {
     image: imgToolChange,
-    text: 'Make sure the tool setter is in place before starting the tool change sequence.'
+    text: ProbingShared.modalVisuals.tool_change.text
   },
   autolevel: {
     image: imgCorner,
-    text: 'Position the probe above the front-left corner of the mapping area.'
+    text: ProbingShared.modalVisuals.autolevel.text
   }
 };
 
@@ -465,52 +395,9 @@ class AutolevelWidget extends PureComponent {
   }
 
   validateInputs() {
-    const { settings } = this.state;
-    const invalidFields = [];
-    const finiteFields = [
-      'toolProbeX', 'toolProbeY', 'toolProbeZ', 'safeZMachine'
-    ];
-    const nonNegativeFields = [
-      'margin', 'probeDeflection', 'retract', 'safeZ', 'plateThickness', 'probeSpacing', 'probeDepth'
-    ];
-    const positiveFields = [
-      'height', 'probeDia', 'sizeX', 'sizeY', 'maxTravel', 'feedSlow', 'feedFast', 'travelSpeed'
-    ];
-
-    finiteFields.forEach(key => {
-      const value = Number(settings[key]);
-      if (!Number.isFinite(value)) {
-        invalidFields.push(key);
-      }
-    });
-
-    nonNegativeFields.forEach(key => {
-      const value = Number(settings[key]);
-      if (!Number.isFinite(value) || value < 0) {
-        invalidFields.push(key);
-      }
-    });
-
-    positiveFields.forEach(key => {
-      const value = Number(settings[key]);
-      if (!Number.isFinite(value) || value <= 0) {
-        invalidFields.push(key);
-      }
-    });
-
-    const grid = Number(settings.grid);
-    if (!Number.isFinite(grid) || grid < 2) {
-      invalidFields.push('grid');
-    }
-
-    const probeRadius = (Number(settings.probeDia) / 2) - Number(settings.probeDeflection);
-    if (!Number.isFinite(probeRadius) || probeRadius < 0) {
-      invalidFields.push('probeDia', 'probeDeflection');
-    }
-
-    const uniqueInvalidFields = invalidFields.filter((field, index) => invalidFields.indexOf(field) === index);
-    this.setState({ invalidFields: uniqueInvalidFields });
-    return uniqueInvalidFields.length === 0;
+    const invalidFields = ProbingShared.validateSettings(this.state.settings);
+    this.setState({ invalidFields });
+    return invalidFields.length === 0;
   }
 
   updateRunningModal(body, progressCurrent, progressTotal) {
@@ -530,19 +417,7 @@ class AutolevelWidget extends PureComponent {
   }
 
   buildSkewProbeGcode(includeMove) {
-    const params = this.getProbeParams();
-    const gcode = ['G91'];
-    if (includeMove) {
-      gcode.push(`G0 X${params.spacing}`);
-    }
-    gcode.push(
-      `G38.2 Y${params.maxTravel} F${params.fast}`,
-      `G0 Y-${params.ret}`,
-      `G38.2 Y${params.ret + 1} F${params.slow}`,
-      `G0 Y-${params.ret}`,
-      'G90'
-    );
-    return gcode.join('\n');
+    return ProbingShared.buildSkewProbeGcode(this.state.settings, includeMove);
   }
 
   startSkewProbe(spacing) {
@@ -652,103 +527,11 @@ class AutolevelWidget extends PureComponent {
   }
 
   getProbeParams() {
-    const s = this.state.settings;
-    const dia = Number(s.probeDia) || 0;
-    const deflect = Number(s.probeDeflection) || 0;
-    return {
-      dia,
-      deflect,
-      ret: Number(s.retract) || 0,
-      maxTravel: Number(s.maxTravel) || 0,
-      safeZ: Number(s.safeZ) || 0,
-      sizeX: Number(s.sizeX) || 0,
-      sizeY: Number(s.sizeY) || 0,
-      spacing: Number(s.probeSpacing) || 0,
-      probeDepth: Number(s.probeDepth) || 0,
-      fast: Number(s.feedFast) || 0,
-      slow: Number(s.feedSlow) || 0,
-      plateThickness: Number(s.plateThickness) || 0,
-      r: (dia / 2) - deflect,
-      toolProbeX: Number(s.toolProbeX) || 0,
-      toolProbeY: Number(s.toolProbeY) || 0,
-      toolProbeZ: Number(s.toolProbeZ) || 0,
-      safeZMachine: Number(s.safeZMachine) || 0,
-      travelSpeed: Number(s.travelSpeed) || 0
-    };
+    return ProbingShared.getProbeParams(this.state.settings);
   }
 
   generateProbe(type, arg) {
-    const params = this.getProbeParams();
-    const isInner = this.state.probeMode === 'inner';
-    const innerWarning = 'Probe/set Z first before running this inside routine. It will move to Corner Depth, then probe X/Y only.';
-    if (type === 'surface') {
-      return {
-        title: 'Probe Z Surface',
-        gcode: GCodeGenerator.generateSurfaceProbe(params)
-      };
-    }
-    if (type === 'edge') {
-      if (isInner) {
-        return {
-          title: `Probe Inner ${arg} Edge`,
-          modalType: 'inner_edge',
-          warning: innerWarning,
-          gcode: GCodeGenerator.generateInnerEdgeProbe(arg.charAt(0), arg.charAt(1), params)
-        };
-      }
-      return {
-        title: `Probe ${arg} Edge`,
-        gcode: GCodeGenerator.generateEdgeProbe(arg.charAt(0), arg.charAt(1), params)
-      };
-    }
-    if (type === 'corner') {
-      if (isInner) {
-        return {
-          title: `Probe Inner ${arg} Corner`,
-          modalType: 'inner_corner',
-          warning: innerWarning,
-          gcode: GCodeGenerator.generateInnerCornerProbe(arg, params)
-        };
-      }
-      return {
-        title: `Probe ${arg} Corner`,
-        gcode: GCodeGenerator.generateCornerProbe(arg, params)
-      };
-    }
-    if (type === 'pocket') {
-      return {
-        title: 'Probe Hole Center',
-        gcode: GCodeGenerator.generateHoleProbe(params)
-      };
-    }
-    if (type === 'boss') {
-      if (isInner) {
-        return {
-          title: 'Probe Inner Pocket Center',
-          modalType: 'inner_boss',
-          warning: innerWarning,
-          gcode: GCodeGenerator.generateInnerPocketProbe(params)
-        };
-      }
-      return {
-        title: `Probe Block Center (${this.state.bossAxis.toUpperCase()})`,
-        gcode: GCodeGenerator.generateBlockProbe(this.state.bossAxis, params)
-      };
-    }
-    if (type === 'z_touchplate') {
-      return {
-        title: 'Probe Z Touchplate',
-        gcode: GCodeGenerator.generateZTouchplateProbe(params)
-      };
-    }
-    if (type === 'tool_change') {
-      return {
-        title: 'Tool Change & Probe',
-        confirmLabel: 'Change Tool',
-        gcode: GCodeGenerator.generateToolChangeProbe(params)
-      };
-    }
-    return null;
+    return ProbingShared.generateProbe(type, arg, this.state.settings, this.state.probeMode, this.state.bossAxis);
   }
 
   sendAutolevelCommand(command, status) {
@@ -1089,7 +872,7 @@ class AutolevelWidget extends PureComponent {
     const { connected, probeMode, bossAxis } = this.state;
     const isInner = probeMode === 'inner';
     const visibleButtons = this.state.settings.showToolChange
-      ? probeButtons.concat([{ label: 'Tool Change', title: 'Tool Change & Probe', type: 'tool_change', shape: true, icon: 'fa-exchange', full: true }])
+      ? probeButtons.concat([toolChangeButton])
       : probeButtons;
 
     return (
