@@ -7,9 +7,23 @@ const Mesh = require('./mesh')
 const alFileNamePrefix = '#AL:'
 
 const path = require('path');
-const DEFAULT_PROBE_FILE = path.join(__dirname, '../../__last_Z_probe.txt');
-const SETTINGS_FILE = path.join(__dirname, '../../autolevel_settings.json');
-const STATE_FILE = path.join(__dirname, '../../autolevel_state.json');
+const LEGACY_DATA_DIR = path.join(__dirname, '../..');
+const LEGACY_PROBE_FILE = path.join(LEGACY_DATA_DIR, '__last_Z_probe.txt');
+const LEGACY_SETTINGS_FILE = path.join(LEGACY_DATA_DIR, 'autolevel_settings.json');
+const LEGACY_STATE_FILE = path.join(LEGACY_DATA_DIR, 'autolevel_state.json');
+
+const ensureDirectory = (dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
+
+const readJsonFile = (file) => {
+  if (!fs.existsSync(file)) {
+    return null;
+  }
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+};
 
 
 const Units = {
@@ -32,11 +46,17 @@ const Units = {
 Object.freeze(Units);
 
 module.exports = class Autolevel {
-  constructor(socket, options) {
+  constructor(socket, options = {}) {
     this.gcodeFileName = ''
     this.gcode = ''
     this.sckw = new SocketWrap(socket, options.port)
     this.outDir = options.outDir;
+    this.dataDir = options.dataDir || LEGACY_DATA_DIR;
+    this.defaultProbeFile = path.join(this.dataDir, '__last_Z_probe.txt');
+    this.getAutolevelSettings = typeof options.getAutolevelSettings === 'function' ? options.getAutolevelSettings : null;
+    this.setAutolevelSettings = typeof options.setAutolevelSettings === 'function' ? options.setAutolevelSettings : null;
+    this.getAutolevelState = typeof options.getAutolevelState === 'function' ? options.getAutolevelState : null;
+    this.setAutolevelState = typeof options.setAutolevelState === 'function' ? options.setAutolevelState : null;
     this.delta = 10.0 // step
     this.feed = 50 // probing feedrate
     this.height = 2 // travelling height
@@ -64,6 +84,12 @@ module.exports = class Autolevel {
     this.zZeroOffset = null; // Store initial Z probe for relative Z calculation
     this.commandQueue = []; // Drip feed queue
 
+    try {
+      ensureDirectory(this.dataDir);
+      this.migrateLegacyProbeFile();
+    } catch (err) {
+      console.error('Failed to prepare autolevel data directory:', err);
+    }
 
     // Listen for controller state updates to track position
     socket.on('controller:state', (state) => {
@@ -89,12 +115,10 @@ module.exports = class Autolevel {
 
     // Load Persistent State (Skew)
     try {
-      if (fs.existsSync(STATE_FILE)) {
-        const stateData = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-        if (stateData.skewAngle !== undefined) {
-          this.skewAngle = stateData.skewAngle;
-          console.log(`Loaded persisted skew angle: ${(this.skewAngle * 180 / Math.PI).toFixed(3)} deg`);
-        }
+      const stateData = this.readStoredState();
+      if (stateData && stateData.skewAngle !== undefined) {
+        this.skewAngle = stateData.skewAngle;
+        console.log(`Loaded persisted skew angle: ${(this.skewAngle * 180 / Math.PI).toFixed(3)} deg`);
       }
     } catch (err) {
       console.error('Failed to load autolevel state:', err);
@@ -103,10 +127,10 @@ module.exports = class Autolevel {
     // Try to read in any pre-existing probe data...
     // Try to read in any pre-existing probe data...
     try {
-      if (fs.existsSync(DEFAULT_PROBE_FILE)) {
-        console.log(`Loading previous probe from ${DEFAULT_PROBE_FILE}`)
-        const data = fs.readFileSync(DEFAULT_PROBE_FILE, 'utf8');
-        this.sckw.sendMessage(`(AL: DEBUG: Loading probe file: ${DEFAULT_PROBE_FILE})`);
+      if (fs.existsSync(this.defaultProbeFile)) {
+        console.log(`Loading previous probe from ${this.defaultProbeFile}`)
+        const data = fs.readFileSync(this.defaultProbeFile, 'utf8');
+        this.sckw.sendMessage(`(AL: DEBUG: Loading probe file: ${this.defaultProbeFile})`);
 
         this.probedPoints = [];
         let lines = data.split('\n');
@@ -126,7 +150,7 @@ module.exports = class Autolevel {
         console.log(`Read ${this.probedPoints.length} probed points from previous session`);
         this.sckw.sendMessage(`(AL: DEBUG: Loaded ${this.probedPoints.length} points)`);
       } else {
-        this.sckw.sendMessage(`(AL: DEBUG: Probe file not found: ${DEFAULT_PROBE_FILE})`);
+        this.sckw.sendMessage(`(AL: DEBUG: Probe file not found: ${this.defaultProbeFile})`);
       }
     } catch (err) {
       console.log(`Failed to read probed points from previous session: ${err}`);
@@ -338,6 +362,58 @@ module.exports = class Autolevel {
     //  this.socket.emit.apply(socket, ['write', this.port, "gcode", "G91 G1 Z1 F1000"]);
   }
 
+  migrateLegacyProbeFile() {
+    if (this.defaultProbeFile === LEGACY_PROBE_FILE) {
+      return;
+    }
+    if (fs.existsSync(this.defaultProbeFile) || !fs.existsSync(LEGACY_PROBE_FILE)) {
+      return;
+    }
+    fs.copyFileSync(LEGACY_PROBE_FILE, this.defaultProbeFile);
+  }
+
+  readStoredSettings() {
+    const settings = this.getAutolevelSettings ? this.getAutolevelSettings() : null;
+    if (settings && typeof settings === 'object') {
+      return settings;
+    }
+
+    const legacySettings = readJsonFile(LEGACY_SETTINGS_FILE);
+    if (legacySettings && this.setAutolevelSettings) {
+      this.setAutolevelSettings(legacySettings);
+    }
+    return legacySettings;
+  }
+
+  writeStoredSettings(settings) {
+    if (this.setAutolevelSettings) {
+      this.setAutolevelSettings(settings);
+      return;
+    }
+    fs.writeFileSync(LEGACY_SETTINGS_FILE, JSON.stringify(settings));
+  }
+
+  readStoredState() {
+    const state = this.getAutolevelState ? this.getAutolevelState() : null;
+    if (state && typeof state === 'object') {
+      return state;
+    }
+
+    const legacyState = readJsonFile(LEGACY_STATE_FILE);
+    if (legacyState && this.setAutolevelState) {
+      this.setAutolevelState(legacyState);
+    }
+    return legacyState;
+  }
+
+  writeStoredState(state) {
+    if (this.setAutolevelState) {
+      this.setAutolevelState(state);
+      return;
+    }
+    fs.writeFileSync(LEGACY_STATE_FILE, JSON.stringify(state));
+  }
+
   fileOpen(fileName) {
     try {
       this.probeFile = fs.openSync(fileName, "w");
@@ -368,9 +444,9 @@ module.exports = class Autolevel {
 
     // Clear the probe file on disk
     try {
-      if (fs.existsSync(DEFAULT_PROBE_FILE)) {
-        fs.truncateSync(DEFAULT_PROBE_FILE, 0);
-        console.log(`Cleared probe file: ${DEFAULT_PROBE_FILE}`);
+      if (fs.existsSync(this.defaultProbeFile)) {
+        fs.truncateSync(this.defaultProbeFile, 0);
+        console.log(`Cleared probe file: ${this.defaultProbeFile}`);
       }
     } catch (err) {
       console.error(`Failed to clear probe file: ${err.message}`);
@@ -448,7 +524,7 @@ module.exports = class Autolevel {
       const state = {
         skewAngle: this.skewAngle
       };
-      fs.writeFileSync(STATE_FILE, JSON.stringify(state));
+      this.writeStoredState(state);
     } catch (err) {
       console.error('Error saving autolevel state:', err);
     }
@@ -456,14 +532,15 @@ module.exports = class Autolevel {
 
   fetchSettings() {
     try {
-      if (fs.existsSync(SETTINGS_FILE)) {
-        const data = fs.readFileSync(SETTINGS_FILE, 'utf8');
-        console.log('Settings loaded from file:', SETTINGS_FILE);
+      const settings = this.readStoredSettings();
+      if (settings && typeof settings === 'object') {
+        const data = JSON.stringify(settings);
+        console.log('Settings loaded from CNCjs config profile');
         // Compact it for sending? It's JSON, should be fine.
         // We will send it as a single line command response
         this.sckw.sendMessage(`(AL: SETTINGS ${data})`);
       } else {
-        console.log('No settings file found, sending empty object.');
+        console.log('No persisted autolevel settings found, sending empty object.');
         this.sckw.sendMessage('(AL: SETTINGS {})');
       }
       this.sckw.sendMessage(`(AL: Current Skew: ${(this.skewAngle * 180 / Math.PI).toFixed(3)} deg)`);
@@ -483,14 +560,20 @@ module.exports = class Autolevel {
     // Let's assume the command is: (autolevel_save_settings { ... })
     // We can strip the prefix and the trailing ')'
 
-    const prefix = 'settings ';
-    const idx = cmd.indexOf(prefix);
+    const prefix = 'save_settings settings ';
+    let idx = cmd.indexOf(prefix);
+    let start = idx + prefix.length;
+    if (idx === -1) {
+      const fallbackPrefix = 'settings ';
+      idx = cmd.lastIndexOf(fallbackPrefix);
+      start = idx + fallbackPrefix.length;
+    }
     if (idx === -1) {
       console.error('Invalid save settings command format');
       return;
     }
 
-    let jsonStr = cmd.substring(idx + prefix.length).trim();
+    let jsonStr = cmd.substring(start).trim();
     // remove trailing ')' if present (it should be)
     if (jsonStr.endsWith(')')) {
       jsonStr = jsonStr.substring(0, jsonStr.length - 1);
@@ -498,9 +581,9 @@ module.exports = class Autolevel {
 
     try {
       // Validate JSON
-      JSON.parse(jsonStr);
-      fs.writeFileSync(SETTINGS_FILE, jsonStr);
-      console.log('Settings saved to:', SETTINGS_FILE);
+      const settings = JSON.parse(jsonStr);
+      this.writeStoredSettings(settings);
+      console.log('Settings saved to CNCjs config profile');
       this.sckw.sendMessage('(AL: Settings saved successfully)');
     } catch (err) {
       console.error('Error saving settings:', err);
@@ -551,7 +634,7 @@ module.exports = class Autolevel {
       // Since no explicit command was given to open the probe recording
       // file, record the probe entries to be reused (in case of system
       // restart)
-      this.fileOpen(DEFAULT_PROBE_FILE);
+      this.fileOpen(this.defaultProbeFile);
     }
 
     this.sckw.sendMessage('(AL: auto-leveling started)')

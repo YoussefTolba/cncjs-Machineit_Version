@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import io from 'socket.io-client';
+import path from 'path';
 import { ensureArray } from 'ensure-type';
 import config from '../configstore';
 import settings from '../../config/settings';
@@ -128,7 +129,12 @@ const start = ({ host = 'localhost', port = 8000, controllerType = 'Grbl' } = {}
     socketAddress: socketHost,
     socketPort: port,
     controllerType: controllerType || 'Grbl',
-    accessTokenLifetime: settings.accessTokenLifetime
+    accessTokenLifetime: settings.accessTokenLifetime,
+    dataDir: path.join(path.dirname(settings.rcfile), '.cncjs-autolevel'),
+    getAutolevelSettings: () => config.get('autolevel.settings'),
+    setAutolevelSettings: value => config.set('autolevel.settings', value),
+    getAutolevelState: () => config.get('autolevel.state'),
+    setAutolevelState: value => config.set('autolevel.state', value)
   };
 
   socket = io.connect(socketUrl, {

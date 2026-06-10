@@ -34,7 +34,14 @@ $env:NODE_ENV = "development"
 Pop-Location
 
 # Compile server code with Babel
+$PreviousBabelEnv = $env:BABEL_ENV
+$env:BABEL_ENV = "server"
 & $Babel -d "output/cncjs/server" "src/server"
+if ($null -eq $PreviousBabelEnv) {
+    Remove-Item Env:\BABEL_ENV -ErrorAction SilentlyContinue
+} else {
+    $env:BABEL_ENV = $PreviousBabelEnv
+}
 
 # Scan i18n translations
 & $Scanner --config "i18next-scanner.server.config.js" `

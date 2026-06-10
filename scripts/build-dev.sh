@@ -16,7 +16,7 @@ cross-env NODE_ENV=development babel "electron-app/**/*.js" \
     --out-dir ../output/cncjs/electron-app
 popd
 
-babel -d output/cncjs/server src/server
+BABEL_ENV=server babel -d output/cncjs/server src/server
 i18next-scanner --config i18next-scanner.server.config.js \"src/server/**/*.{html,js,jsx}\" \"!src/server/i18n/**\" \"!**/node_modules/**\"
 
 cross-env NODE_ENV=development webpack-cli --config webpack.config.development.js
