@@ -11,6 +11,10 @@ units: mm
 
 This guide walks a new user from opening the customized CNCjs app to making the first safe cuts on the CNC router.
 
+![Startup flow](assets/visual-startup-flow.svg)
+
+For a more visual version of this same process, open [[06 - Visual Startup Guide]].
+
 ## 1. Before You Launch Anything
 
 Start with the machine physically safe.
@@ -177,6 +181,8 @@ In the desktop workspace:
 
 Do not press Start until the preview makes sense.
 
+![Workspace job flow](assets/workspace-job-flow.svg)
+
 ## 11. Dry Run Or Air Cut
 
 For a first setup, run one safe test before cutting.
@@ -192,8 +198,8 @@ For a first setup, run one safe test before cutting.
 When ready:
 
 1. Put on eye and ear protection.
-2. Close enclusore Door
-3. Press Start
+2. Close the enclosure door if the machine has one.
+3. Press Start.
 4. Watch the first plunge.
 5. Watch the first side load cut.
 6. Use Feed Hold if something looks wrong but there is no immediate crash.

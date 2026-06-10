@@ -26,6 +26,8 @@ This manual covers the customized CNCjs workspace and phone pendant used with a 
 
 The desktop workspace is for detailed setup and job control.
 
+![Workspace overview](assets/workspace-overview-map.svg)
+
 Use it for:
 
 - Connecting to GRBL.
@@ -36,6 +38,8 @@ Use it for:
 - Starting and stopping jobs.
 
 The phone pendant is for close-up control near the machine.
+
+![Pendant overview](assets/pendant-overview-map.svg)
 
 Use it for:
 
@@ -132,6 +136,8 @@ Do not use the wizard during a running job.
 | Advanced | Edit pulse, invert, report, junction, arc, and unit-reporting settings |
 
 Backup workflow:
+
+![GRBL backup flow](assets/grbl-settings-backup-flow.svg)
 
 1. Connect to the GRBL controller.
 2. Open Settings > GRBL Settings.
@@ -245,6 +251,8 @@ Use the Connection widget first. No jogging, probing, or job control works until
 
 The Visualizer is the center area that shows the loaded toolpath and job controls.
 
+![Workspace job flow](assets/workspace-job-flow.svg)
+
 | Button or control | What it does | Notes |
 | --- | --- | --- |
 | Upload G-code | Loads a G-code file from the computer | Use before running a job |
@@ -330,6 +338,8 @@ Use MDI buttons only when you know what the command does.
 ### Main Probe Widget Buttons
 
 The main Probe widget uses the same 9-button square layout as the pendant.
+
+![Probe pad directions](assets/probe-pad-directions.svg)
 
 | Button | What it does | Direction |
 | --- | --- | --- |

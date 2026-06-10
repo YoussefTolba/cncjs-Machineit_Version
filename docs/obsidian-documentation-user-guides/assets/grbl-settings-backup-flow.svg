@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="560" viewBox="0 0 1050 560">
+  <defs>
+    <style>
+      .bg{fill:#f7f9fb}.title{font:700 32px Arial,Helvetica,sans-serif;fill:#17202a}
+      .box{fill:#fff;stroke:#cbd6e0;stroke-width:2;rx:14}.safe{fill:#eaf7ef;stroke:#84bf9a;stroke-width:2;rx:14}.warn{fill:#fff7e6;stroke:#e5ba67;stroke-width:2;rx:14}
+      .label{font:700 21px Arial,Helvetica,sans-serif;fill:#1f2d3d}.small{font:400 15px Arial,Helvetica,sans-serif;fill:#3c4b5c}.cmd{font:700 15px Consolas,Monaco,monospace;fill:#0d4b7a}
+      .arrow{stroke:#788896;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#788896"/></marker>
+  </defs>
+  <rect class="bg" width="1050" height="560"/>
+  <text class="title" x="40" y="56">GRBL Settings Backup And Restore Flow</text>
+  <g transform="translate(60 120)">
+    <rect class="box" width="200" height="120"/><text class="label" x="34" y="40">Connect</text><text class="small" x="24" y="74">Open serial port to</text><text class="small" x="24" y="98">the GRBL controller.</text>
+  </g>
+  <path class="arrow" d="M265 180 H330"/>
+  <g transform="translate(340 120)">
+    <rect class="safe" width="200" height="120"/><text class="label" x="48" y="40">Back Up</text><text class="cmd" x="24" y="74">Settings > GRBL</text><text class="small" x="24" y="98">Save before editing.</text>
+  </g>
+  <path class="arrow" d="M545 180 H610"/>
+  <g transform="translate(620 120)">
+    <rect class="warn" width="200" height="120"/><text class="label" x="48" y="40">Edit One Area</text><text class="small" x="24" y="74">Motion, homing,</text><text class="small" x="24" y="98">limits, spindle, etc.</text>
+  </g>
+  <path class="arrow" d="M825 180 H890"/>
+  <g transform="translate(900 120)">
+    <rect class="box" width="120" height="120"/><text class="label" x="30" y="40">Test</text><text class="small" x="18" y="74">Jog, home,</text><text class="small" x="18" y="98">probe.</text>
+  </g>
+  <g transform="translate(260 340)">
+    <rect class="warn" width="530" height="120"/>
+    <text class="label" x="26" y="42">If something behaves wrong</text>
+    <text class="small" x="26" y="78">Load the saved backup, use Flash Backup, then test again before cutting.</text>
+  </g>
+</svg>

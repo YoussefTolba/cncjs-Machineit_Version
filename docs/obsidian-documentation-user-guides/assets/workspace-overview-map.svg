@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860">
+  <defs>
+    <style>
+      .bg{fill:#f4f6f8}.frame{fill:#fff;stroke:#b7c2cc;stroke-width:3;rx:16}
+      .top{fill:#243447}.side{fill:#eef2f5}.center{fill:#ffffff}.widget{fill:#ffffff;stroke:#c8d3dd;stroke-width:2;rx:10}
+      .primary{fill:#2f7ebc}.green{fill:#eaf7ef;stroke:#84bf9a;stroke-width:2;rx:10}
+      .yellow{fill:#fff7e6;stroke:#e5ba67;stroke-width:2;rx:10}.red{fill:#fff0f0;stroke:#dc7d7d;stroke-width:2;rx:10}
+      .title{font:700 34px Arial,Helvetica,sans-serif;fill:#17202a}.label{font:700 20px Arial,Helvetica,sans-serif;fill:#1f2d3d}
+      .white{font:700 20px Arial,Helvetica,sans-serif;fill:#fff}.small{font:400 15px Arial,Helvetica,sans-serif;fill:#3c4b5c}
+      .tiny{font:400 13px Arial,Helvetica,sans-serif;fill:#536271}.call{fill:#2f7ebc}.num{font:700 17px Arial,Helvetica,sans-serif;fill:#fff}
+    </style>
+  </defs>
+  <rect class="bg" width="1400" height="860"/>
+  <text class="title" x="48" y="58">Desktop Workspace Screen Map</text>
+  <rect class="frame" x="45" y="90" width="1310" height="710"/>
+  <rect class="top" x="45" y="90" width="1310" height="66" rx="16"/>
+  <text class="white" x="72" y="131">CNCjs Workspace</text>
+  <rect class="primary" x="730" y="106" width="92" height="34" rx="17"/><text class="white" x="750" y="130">Start</text>
+  <rect class="primary" x="835" y="106" width="120" height="34" rx="17"/><text class="white" x="856" y="130">Feed Hold</text>
+  <rect class="primary" x="970" y="106" width="95" height="34" rx="17"/><text class="white" x="992" y="130">Home</text>
+  <rect class="primary" x="1080" y="106" width="100" height="34" rx="17"/><text class="white" x="1101" y="130">Unlock</text>
+  <rect class="red" x="1195" y="106" width="88" height="34"/><text class="label" x="1212" y="130">Reset</text>
+
+  <rect class="side" x="45" y="156" width="310" height="644"/>
+  <rect class="center" x="355" y="156" width="690" height="644"/>
+  <rect class="side" x="1045" y="156" width="310" height="644"/>
+
+  <rect class="widget" x="65" y="178" width="270" height="132"/>
+  <text class="label" x="88" y="212">Connection</text>
+  <text class="small" x="88" y="242">Port, baud, controller, Open/Close.</text>
+  <text class="tiny" x="88" y="270">Use this first before jogging or probing.</text>
+
+  <rect class="widget" x="65" y="328" width="270" height="156"/>
+  <text class="label" x="88" y="362">Axes / Jog</text>
+  <text class="small" x="88" y="392">DRO, jog buttons, zero buttons.</text>
+  <text class="tiny" x="88" y="420">Raise Z before large XY moves.</text>
+
+  <rect class="green" x="65" y="502" width="270" height="178"/>
+  <text class="label" x="88" y="536">Autolevel / Probe</text>
+  <text class="small" x="88" y="566">Skew, mesh, probing grid, settings.</text>
+  <text class="tiny" x="88" y="594">Shares probe G-code with pendant.</text>
+  <text class="tiny" x="88" y="620">Probe Z, edges, corners, holes, blocks.</text>
+
+  <rect class="widget" x="380" y="178" width="640" height="438"/>
+  <text class="label" x="410" y="212">Visualizer And Loaded G-code</text>
+  <rect x="415" y="240" width="560" height="275" fill="#eef4f8" stroke="#c8d3dd" stroke-width="2" rx="8"/>
+  <path d="M460 470 L570 330 L760 410 L900 280" stroke="#2f7ebc" stroke-width="8" fill="none"/>
+  <circle cx="460" cy="470" r="9" fill="#2f7ebc"/><circle cx="900" cy="280" r="9" fill="#2f7ebc"/>
+  <text class="small" x="415" y="552">Check preview, extents, origin, Z moves, and clamp clearance.</text>
+  <rect class="yellow" x="415" y="574" width="180" height="32"/><text class="label" x="466" y="597">Run</text>
+  <rect class="yellow" x="612" y="574" width="180" height="32"/><text class="label" x="665" y="597">Pause</text>
+  <rect class="red" x="808" y="574" width="160" height="32"/><text class="label" x="865" y="597">Stop</text>
+
+  <rect class="widget" x="380" y="635" width="640" height="132"/>
+  <text class="label" x="410" y="670">Console / Status</text>
+  <text class="small" x="410" y="700">Watch GRBL replies, alarms, probe messages, and autolevel output.</text>
+  <text class="tiny" x="410" y="728">Useful messages include AL: SETTINGS, AL: PROBED, AL: progress, and PRB.</text>
+
+  <rect class="widget" x="1068" y="178" width="265" height="132"/>
+  <text class="label" x="1090" y="212">Tool / Probe</text>
+  <text class="small" x="1090" y="242">Tool setter values and tool change.</text>
+  <text class="tiny" x="1090" y="270">Keep setter installed before running.</text>
+
+  <rect class="widget" x="1068" y="328" width="265" height="132"/>
+  <text class="label" x="1090" y="362">Spindle / Laser</text>
+  <text class="small" x="1090" y="392">Spindle on/off and speed control.</text>
+  <text class="tiny" x="1090" y="420">Spindle stays off during setup.</text>
+
+  <rect class="widget" x="1068" y="478" width="265" height="132"/>
+  <text class="label" x="1090" y="512">Macros / Commands</text>
+  <text class="small" x="1090" y="542">Custom saved actions.</text>
+  <text class="tiny" x="1090" y="570">Run only commands you recognize.</text>
+
+  <rect class="widget" x="1068" y="628" width="265" height="132"/>
+  <text class="label" x="1090" y="662">Settings</text>
+  <text class="small" x="1090" y="692">GRBL settings, calibration, layout.</text>
+  <text class="tiny" x="1090" y="720">Back up before firmware changes.</text>
+
+  <circle class="call" cx="707" cy="124" r="18"/><text class="num" x="702" y="130">1</text>
+  <circle class="call" cx="337" cy="220" r="18"/><text class="num" x="332" y="226">2</text>
+  <circle class="call" cx="1010" cy="220" r="18"/><text class="num" x="1005" y="226">3</text>
+  <circle class="call" cx="338" cy="590" r="18"/><text class="num" x="333" y="596">4</text>
+  <circle class="call" cx="700" cy="770" r="18"/><text class="num" x="695" y="776">5</text>
+</svg>

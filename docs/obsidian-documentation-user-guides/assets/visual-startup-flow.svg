@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .bg{fill:#f7f9fb}
+      .title{font:700 34px Arial,Helvetica,sans-serif;fill:#17202a}
+      .sub{font:400 18px Arial,Helvetica,sans-serif;fill:#4b5b6b}
+      .box{fill:#fff;stroke:#ccd6e0;stroke-width:2;rx:14}
+      .box2{fill:#eef8f3;stroke:#8cc6a8;stroke-width:2;rx:14}
+      .warn{fill:#fff7e8;stroke:#e4b15e;stroke-width:2;rx:14}
+      .danger{fill:#fff0f0;stroke:#df7c7c;stroke-width:2;rx:14}
+      .num{font:700 22px Arial,Helvetica,sans-serif;fill:#fff}
+      .label{font:700 21px Arial,Helvetica,sans-serif;fill:#1f2d3d}
+      .small{font:400 15px Arial,Helvetica,sans-serif;fill:#3c4b5c}
+      .cmd{font:700 15px Consolas,Monaco,monospace;fill:#0d4b7a}
+      .pill{fill:#2f7ebc}
+      .arrow{stroke:#788896;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#788896"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1200" height="760"/>
+  <text class="title" x="48" y="58">Startup Flow: From Cold Machine To First Safe Cut</text>
+  <text class="sub" x="50" y="88">Use this as the first-page visual checklist for the operator.</text>
+
+  <g transform="translate(55 130)">
+    <rect class="danger" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">1</text>
+    <text class="label" x="64" y="38">Make Safe</text>
+    <text class="small" x="24" y="70">Spindle off, E-stop reachable,</text>
+    <text class="small" x="24" y="92">stock clamped, bed clear.</text>
+  </g>
+  <path class="arrow" d="M310 190 H380"/>
+
+  <g transform="translate(390 130)">
+    <rect class="box" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">2</text>
+    <text class="label" x="64" y="38">Launch CNCjs</text>
+    <text class="cmd" x="24" y="72">Launch CNCjs Dev.bat</text>
+    <text class="small" x="24" y="96">Builds and starts services.</text>
+  </g>
+  <path class="arrow" d="M645 190 H715"/>
+
+  <g transform="translate(725 130)">
+    <rect class="box2" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">3</text>
+    <text class="label" x="64" y="38">Open Screens</text>
+    <text class="cmd" x="24" y="72">localhost:8080</text>
+    <text class="cmd" x="24" y="96">computer-ip:8000/pendant/</text>
+  </g>
+
+  <path class="arrow" d="M850 255 V320"/>
+  <g transform="translate(725 330)">
+    <rect class="box" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">4</text>
+    <text class="label" x="64" y="38">Connect GRBL</text>
+    <text class="small" x="24" y="70">Choose COM port, GRBL,</text>
+    <text class="small" x="24" y="92">115200 baud, then Open.</text>
+  </g>
+  <path class="arrow" d="M720 390 H650"/>
+
+  <g transform="translate(390 330)">
+    <rect class="warn" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">5</text>
+    <text class="label" x="64" y="38">Unlock And Home</text>
+    <text class="small" x="24" y="70">Inspect first. Home only if</text>
+    <text class="small" x="24" y="92">switches are configured.</text>
+  </g>
+  <path class="arrow" d="M385 390 H315"/>
+
+  <g transform="translate(55 330)">
+    <rect class="box" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">6</text>
+    <text class="label" x="64" y="38">Jog Test</text>
+    <text class="small" x="24" y="70">Small step. Check X, Y, Z</text>
+    <text class="small" x="24" y="92">move the expected way.</text>
+  </g>
+
+  <path class="arrow" d="M180 455 V520"/>
+  <g transform="translate(55 530)">
+    <rect class="box2" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">7</text>
+    <text class="label" x="64" y="38">Set Work Zero</text>
+    <text class="small" x="24" y="70">Probe Z, then edge/corner.</text>
+    <text class="small" x="24" y="92">Raise Z before XY travel.</text>
+  </g>
+  <path class="arrow" d="M310 590 H380"/>
+
+  <g transform="translate(390 530)">
+    <rect class="box" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">8</text>
+    <text class="label" x="64" y="38">Load And Preview</text>
+    <text class="small" x="24" y="70">Check units, extents, Z</text>
+    <text class="small" x="24" y="92">moves, clamps, and origin.</text>
+  </g>
+  <path class="arrow" d="M645 590 H715"/>
+
+  <g transform="translate(725 530)">
+    <rect class="warn" x="0" y="0" width="250" height="120"/>
+    <circle class="pill" cx="34" cy="34" r="18"/><text class="num" x="28" y="42">9</text>
+    <text class="label" x="64" y="38">Dry Run Then Cut</text>
+    <text class="small" x="24" y="70">Air cut first. Then start</text>
+    <text class="small" x="24" y="92">spindle and watch first pass.</text>
+  </g>
+
+  <g transform="translate(1010 148)">
+    <rect class="danger" x="0" y="0" width="135" height="500"/>
+    <text class="label" x="22" y="42">Always</text>
+    <text class="small" x="18" y="82">Keep one hand</text>
+    <text class="small" x="18" y="104">near Feed Hold</text>
+    <text class="small" x="18" y="126">or E-stop.</text>
+    <line x1="18" y1="160" x2="117" y2="160" stroke="#df7c7c" stroke-width="2"/>
+    <text class="small" x="18" y="198">Do not leave</text>
+    <text class="small" x="18" y="220">the first cut.</text>
+    <line x1="18" y1="254" x2="117" y2="254" stroke="#df7c7c" stroke-width="2"/>
+    <text class="small" x="18" y="292">If motion is</text>
+    <text class="small" x="18" y="314">wrong, stop.</text>
+  </g>
+</svg>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="1180" viewBox="0 0 980 1180">
+  <defs>
+    <style>
+      .bg{fill:#f5f7fa}.phone{fill:#18212b;rx:44}.screen{fill:#ffffff;rx:30}
+      .top{fill:#26384a}.panel{fill:#f4f7f9;stroke:#cdd8e2;stroke-width:2;rx:14}
+      .btn{fill:#ffffff;stroke:#bcc8d4;stroke-width:2;rx:8}.primary{fill:#2f7ebc}.danger{fill:#dc6f6f}
+      .title{font:700 34px Arial,Helvetica,sans-serif;fill:#17202a}.white{font:700 20px Arial,Helvetica,sans-serif;fill:#fff}
+      .label{font:700 20px Arial,Helvetica,sans-serif;fill:#1f2d3d}.small{font:400 15px Arial,Helvetica,sans-serif;fill:#3d4c5d}
+      .tiny{font:400 13px Arial,Helvetica,sans-serif;fill:#536271}.num{font:700 16px Arial,Helvetica,sans-serif;fill:#fff}.call{fill:#2f7ebc}
+    </style>
+  </defs>
+  <rect class="bg" width="980" height="1180"/>
+  <text class="title" x="40" y="58">Phone Pendant Screen Map</text>
+  <rect class="phone" x="292" y="90" width="396" height="1030" rx="44"/>
+  <rect class="screen" x="314" y="130" width="352" height="948" rx="30"/>
+  <rect class="top" x="314" y="130" width="352" height="82" rx="30"/>
+  <text class="white" x="342" y="178">CNCjs Pendant</text>
+  <rect class="primary" x="560" y="154" width="78" height="34" rx="8"/><text class="white" x="571" y="177">Connect</text>
+
+  <rect class="panel" x="336" y="230" width="308" height="70"/>
+  <text class="label" x="356" y="258">Status Cards</text>
+  <text class="small" x="356" y="282">Port, machine state, jog step.</text>
+
+  <rect class="panel" x="336" y="316" width="308" height="80"/>
+  <text class="label" x="356" y="344">Position DRO</text>
+  <text class="small" x="356" y="370">Live X, Y, Z work position.</text>
+
+  <rect class="panel" x="336" y="414" width="308" height="92"/>
+  <text class="label" x="356" y="442">Serial Port</text>
+  <text class="small" x="356" y="468">Select COM port, baud, Open.</text>
+
+  <rect class="panel" x="336" y="524" width="308" height="196"/>
+  <text class="label" x="356" y="552">Jog Pad</text>
+  <g transform="translate(360 574)">
+    <rect class="btn" x="0" y="0" width="54" height="42"/><text class="small" x="15" y="27">XY</text>
+    <rect class="btn" x="62" y="0" width="54" height="42"/><text class="small" x="78" y="27">Y+</text>
+    <rect class="btn" x="124" y="0" width="54" height="42"/><text class="small" x="139" y="27">XY</text>
+    <rect class="btn" x="206" y="0" width="54" height="42"/><text class="small" x="222" y="27">Z+</text>
+    <rect class="btn" x="0" y="52" width="54" height="42"/><text class="small" x="17" y="79">X-</text>
+    <rect class="btn" x="62" y="52" width="54" height="42"/><text class="small" x="73" y="79">XY0</text>
+    <rect class="btn" x="124" y="52" width="54" height="42"/><text class="small" x="140" y="79">X+</text>
+    <rect class="btn" x="206" y="52" width="54" height="42"/><text class="small" x="222" y="79">Z0</text>
+    <rect class="btn" x="0" y="104" width="54" height="42"/><text class="small" x="15" y="131">XY</text>
+    <rect class="btn" x="62" y="104" width="54" height="42"/><text class="small" x="78" y="131">Y-</text>
+    <rect class="btn" x="124" y="104" width="54" height="42"/><text class="small" x="139" y="131">XY</text>
+    <rect class="btn" x="206" y="104" width="54" height="42"/><text class="small" x="222" y="131">Z-</text>
+  </g>
+
+  <rect class="panel" x="336" y="738" width="308" height="86"/>
+  <text class="label" x="356" y="766">Zero And Spindle</text>
+  <text class="small" x="356" y="792">Set X/Y/Z zero, M3/M4/M5, coolant.</text>
+
+  <rect class="panel" x="336" y="842" width="308" height="126"/>
+  <text class="label" x="356" y="870">Autolevel And Probe</text>
+  <text class="small" x="356" y="896">Skew, mesh, 9-button probe grid.</text>
+  <text class="tiny" x="356" y="922">Uses same shared probe functions</text>
+  <text class="tiny" x="356" y="944">as the desktop workspace.</text>
+
+  <rect class="panel" x="336" y="986" width="308" height="70"/>
+  <text class="label" x="356" y="1014">Machine Controls</text>
+  <text class="small" x="356" y="1040">Home, unlock, start, hold, abort.</text>
+
+  <g transform="translate(56 170)">
+    <circle class="call" cx="20" cy="20" r="18"/><text class="num" x="15" y="26">1</text>
+    <text class="label" x="50" y="26">Use near the machine</text>
+    <text class="small" x="50" y="54">The pendant is for close-up control while watching the tool.</text>
+  </g>
+  <g transform="translate(56 272)">
+    <circle class="call" cx="20" cy="20" r="18"/><text class="num" x="15" y="26">2</text>
+    <text class="label" x="50" y="26">Small steps first</text>
+    <text class="small" x="50" y="54">Use small jog steps near stock, clamps, or the probe.</text>
+  </g>
+  <g transform="translate(700 470)">
+    <circle class="call" cx="20" cy="20" r="18"/><text class="num" x="15" y="26">3</text>
+    <text class="label" x="50" y="26">Probe from pendant</text>
+    <text class="small" x="50" y="54">Buttons are generated from the shared probing module.</text>
+  </g>
+  <g transform="translate(700 602)">
+    <circle class="call" cx="20" cy="20" r="18"/><text class="num" x="15" y="26">4</text>
+    <text class="label" x="50" y="26">Emergency habits</text>
+    <text class="small" x="50" y="54">Use Feed Hold for controlled pause. Use E-stop for danger.</text>
+  </g>
+</svg>

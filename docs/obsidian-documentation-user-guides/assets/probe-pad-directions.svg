@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="760" viewBox="0 0 1000 760">
+  <defs>
+    <style>
+      .bg{fill:#f7f9fb}.title{font:700 34px Arial,Helvetica,sans-serif;fill:#17202a}
+      .grid{fill:#fff;stroke:#9fb0bf;stroke-width:3}.cell{fill:#ffffff;stroke:#9fb0bf;stroke-width:3}
+      .center{fill:#eaf7ef}.edge{fill:#eef5fb}.corner{fill:#fff7e6}
+      .label{font:700 24px Arial,Helvetica,sans-serif;fill:#1f2d3d}.small{font:400 16px Arial,Helvetica,sans-serif;fill:#3c4b5c}
+      .axis{font:700 20px Arial,Helvetica,sans-serif;fill:#2f7ebc}.note{fill:#fff;stroke:#ccd6e0;stroke-width:2;rx:12}
+    </style>
+  </defs>
+  <rect class="bg" width="1000" height="760"/>
+  <text class="title" x="46" y="58">Shared Probe Pad Direction Map</text>
+  <text class="small" x="50" y="88">The workspace and pendant call the same shared probe generator for these actions.</text>
+  <g transform="translate(88 130)">
+    <rect class="cell corner" x="0" y="0" width="220" height="150"/>
+    <rect class="cell edge" x="220" y="0" width="220" height="150"/>
+    <rect class="cell corner" x="440" y="0" width="220" height="150"/>
+    <rect class="cell edge" x="0" y="150" width="220" height="150"/>
+    <rect class="cell center" x="220" y="150" width="220" height="150"/>
+    <rect class="cell edge" x="440" y="150" width="220" height="150"/>
+    <rect class="cell corner" x="0" y="300" width="220" height="150"/>
+    <rect class="cell edge" x="220" y="300" width="220" height="150"/>
+    <rect class="cell corner" x="440" y="300" width="220" height="150"/>
+
+    <text class="label" x="48" y="58">Back Left</text><text class="small" x="52" y="92">Corner TL</text>
+    <text class="label" x="292" y="58">Back Edge</text><text class="axis" x="310" y="92">Y+</text>
+    <text class="label" x="486" y="58">Back Right</text><text class="small" x="506" y="92">Corner TR</text>
+
+    <text class="label" x="58" y="208">Left Edge</text><text class="axis" x="88" y="242">X-</text>
+    <text class="label" x="300" y="208">Probe Z</text><text class="small" x="274" y="242">Set surface Z0</text>
+    <text class="label" x="490" y="208">Right Edge</text><text class="axis" x="528" y="242">X+</text>
+
+    <text class="label" x="44" y="358">Front Left</text><text class="small" x="52" y="392">Corner BL</text>
+    <text class="label" x="286" y="358">Front Edge</text><text class="axis" x="310" y="392">Y-</text>
+    <text class="label" x="478" y="358">Front Right</text><text class="small" x="506" y="392">Corner BR</text>
+  </g>
+
+  <g transform="translate(790 142)">
+    <rect class="note" x="0" y="0" width="168" height="430"/>
+    <text class="label" x="24" y="42">Modes</text>
+    <text class="small" x="20" y="82">Outer mode probes</text>
+    <text class="small" x="20" y="106">outside stock edges.</text>
+    <line x1="20" y1="132" x2="148" y2="132" stroke="#ccd6e0" stroke-width="2"/>
+    <text class="small" x="20" y="172">Inner mode probes</text>
+    <text class="small" x="20" y="196">inside pockets and</text>
+    <text class="small" x="20" y="220">inside corners.</text>
+    <line x1="20" y1="246" x2="148" y2="246" stroke="#ccd6e0" stroke-width="2"/>
+    <text class="small" x="20" y="286">Block button becomes</text>
+    <text class="small" x="20" y="310">Pocket in inner mode.</text>
+    <line x1="20" y1="336" x2="148" y2="336" stroke="#ccd6e0" stroke-width="2"/>
+    <text class="small" x="20" y="376">Tool Change appears</text>
+    <text class="small" x="20" y="400">when enabled.</text>
+  </g>
+
+  <g transform="translate(90 640)">
+    <rect class="note" x="0" y="0" width="860" height="70"/>
+    <text class="small" x="24" y="30">Important: after any probe cycle, confirm the DRO and raise Z before a long XY move.</text>
+    <text class="small" x="24" y="54">Probe settings include diameter, deflection, retract, max travel, feeds, plate thickness, skew spacing, and corner depth.</text>
+  </g>
+</svg>

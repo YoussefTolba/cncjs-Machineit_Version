@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .bg{fill:#f7f9fb}.title{font:700 34px Arial,Helvetica,sans-serif;fill:#17202a}
+      .box{fill:#fff;stroke:#cbd6e0;stroke-width:2;rx:14}.green{fill:#eaf7ef;stroke:#84bf9a;stroke-width:2;rx:14}
+      .yellow{fill:#fff7e6;stroke:#e5ba67;stroke-width:2;rx:14}.blue{fill:#eef5fb;stroke:#8bb5d8;stroke-width:2;rx:14}
+      .label{font:700 22px Arial,Helvetica,sans-serif;fill:#1f2d3d}.small{font:400 16px Arial,Helvetica,sans-serif;fill:#3c4b5c}
+      .cmd{font:700 15px Consolas,Monaco,monospace;fill:#0d4b7a}.arrow{stroke:#788896;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#788896"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="48" y="58">Autolevel, Skew, And Probe Logic Map</text>
+  <text class="small" x="50" y="88">Workspace and pendant have different UI shells but call the same shared probing functions.</text>
+
+  <g transform="translate(60 140)">
+    <rect class="blue" x="0" y="0" width="270" height="145"/>
+    <text class="label" x="28" y="42">User Screen</text>
+    <text class="small" x="28" y="76">Desktop Autolevel widget</text>
+    <text class="small" x="28" y="102">or phone pendant panel</text>
+  </g>
+  <path class="arrow" d="M335 212 H420"/>
+
+  <g transform="translate(430 140)">
+    <rect class="green" x="0" y="0" width="300" height="145"/>
+    <text class="label" x="28" y="42">Shared Module</text>
+    <text class="cmd" x="28" y="78">probingShared.js</text>
+    <text class="small" x="28" y="108">Validates settings and builds G-code.</text>
+  </g>
+  <path class="arrow" d="M735 212 H820"/>
+
+  <g transform="translate(830 140)">
+    <rect class="box" x="0" y="0" width="300" height="145"/>
+    <text class="label" x="28" y="42">Controller Send</text>
+    <text class="small" x="28" y="76">Workspace: controller.command</text>
+    <text class="small" x="28" y="102">Pendant: socket command</text>
+  </g>
+
+  <g transform="translate(60 360)">
+    <rect class="box" x="0" y="0" width="270" height="190"/>
+    <text class="label" x="28" y="42">Probe Actions</text>
+    <text class="small" x="28" y="78">Z surface</text>
+    <text class="small" x="28" y="104">Edges and corners</text>
+    <text class="small" x="28" y="130">Hole and block center</text>
+    <text class="small" x="28" y="156">Inner pocket/corner</text>
+  </g>
+  <g transform="translate(365 360)">
+    <rect class="yellow" x="0" y="0" width="270" height="190"/>
+    <text class="label" x="28" y="42">Skew</text>
+    <text class="cmd" x="28" y="80">buildSkewProbeGcode()</text>
+    <text class="small" x="28" y="116">Probes two edge points, then</text>
+    <text class="small" x="28" y="142">stores skew angle with</text>
+    <text class="cmd" x="28" y="168">autolevel_skew</text>
+  </g>
+  <g transform="translate(670 360)">
+    <rect class="green" x="0" y="0" width="270" height="190"/>
+    <text class="label" x="28" y="42">Mesh</text>
+    <text class="cmd" x="28" y="80">autolevel F... H... M...</text>
+    <text class="small" x="28" y="116">Collects surface points and</text>
+    <text class="small" x="28" y="142">applies mesh to loaded G-code.</text>
+  </g>
+  <g transform="translate(975 360)">
+    <rect class="box" x="0" y="0" width="170" height="190"/>
+    <text class="label" x="24" y="42">Settings</text>
+    <text class="small" x="24" y="78">Probe dia</text>
+    <text class="small" x="24" y="104">Deflection</text>
+    <text class="small" x="24" y="130">Feeds</text>
+    <text class="small" x="24" y="156">Retract</text>
+  </g>
+
+  <path class="arrow" d="M195 355 V300 H580 V292"/>
+  <path class="arrow" d="M500 355 V300 H580 V292"/>
+  <path class="arrow" d="M805 355 V300 H580 V292"/>
+  <path class="arrow" d="M1060 355 V300 H580 V292"/>
+
+  <g transform="translate(120 610)">
+    <rect class="blue" x="0" y="0" width="960" height="78"/>
+    <text class="label" x="30" y="34">Result For Users</text>
+    <text class="small" x="30" y="60">When the user presses the same probe action on workspace or pendant, the generated probing G-code is consistent.</text>
+  </g>
+</svg>
