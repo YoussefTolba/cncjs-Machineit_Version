@@ -4,6 +4,19 @@ cd /d "%~dp0"
 set "NODE_ENV=development"
 set "PENDANT_DIR=%CD%\pendants\phone"
 set "AUTOLEVEL_SHARED_DIR=%CD%\src\shared\autolevel"
+set "WEBPACK_CLI=%CD%\node_modules\webpack-cli\bin\cli.js"
+
+call :FindNode
+if errorlevel 1 (
+    echo.
+    echo Could not find a working Node.js runtime.
+    echo Install Node.js 18+ or set CNCJS_NODE_EXE to a working node.exe or gnode.exe path.
+    echo.
+    pause
+    exit /b 1
+)
+
+echo Using Node runtime: %CNCJS_NODE_EXE%
 
 echo Building CNCjs development files...
 powershell -ExecutionPolicy Bypass -File scripts\build-dev.ps1
@@ -42,7 +55,7 @@ echo.
 echo Starting CNCjs workspace server on port 8080...
 call :IsPortListening 8080
 if errorlevel 1 (
-    start "CNCjs Workspace Assets 8080" /D "%CD%" cmd /k npm run start-app-dev
+    start "CNCjs Workspace Assets 8080" /D "%CD%" cmd /k call scripts\run-workspace-dev.cmd
 ) else (
     echo Port 8080 is already running. Reusing it.
 )
@@ -50,7 +63,7 @@ if errorlevel 1 (
 echo Starting CNCjs server on port 8000...
 call :IsPortListening 8000
 if errorlevel 1 (
-    start "CNCjs Server 8000" /D "%CD%" cmd /k node .\bin\cncjs --port 8000 --mount "/pendant:%PENDANT_DIR%" --mount "/autolevel-shared:%AUTOLEVEL_SHARED_DIR%"
+    start "CNCjs Server 8000" /D "%CD%" cmd /k call scripts\run-server-dev.cmd
 ) else (
     echo Port 8000 is already running. Reusing it.
 )
@@ -67,13 +80,11 @@ if errorlevel 1 (
 )
 
 echo Waiting for the pendant to answer on port 8000...
-call :WaitForUrl "http://127.0.0.1:8000/pendant/" 60
+call :WaitForUrl "http://127.0.0.1:8000/pendant/" 20
 if errorlevel 1 (
     echo.
-    echo Pendant did not answer on port 8000.
-    echo Check the "CNCjs Server 8000" window for errors.
-    pause
-    exit /b 1
+    echo Pendant did not answer yet on port 8000.
+    echo Opening the pendant tab anyway; refresh it after the CNCjs server finishes warming up.
 )
 
 echo Opening browser tabs...
@@ -83,8 +94,36 @@ start "" "%PENDANT_URL%"
 echo.
 echo Browser tabs opened.
 echo Keep the "CNCjs Workspace Assets 8080" and "CNCjs Server 8000" windows open while using CNCjs.
-timeout /t 3 /nobreak >nul
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 3"
 exit /b 0
+
+:FindNode
+if defined CNCJS_NODE_EXE (
+    if /I "%CNCJS_NODE_EXE%"=="node" exit /b 0
+    if exist "%CNCJS_NODE_EXE%" exit /b 0
+    echo CNCJS_NODE_EXE points to a missing file: %CNCJS_NODE_EXE%
+    exit /b 1
+)
+
+set "CANDIDATE_NODE=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\gnode.exe"
+if exist "%CANDIDATE_NODE%" (
+    set "CNCJS_NODE_EXE=%CANDIDATE_NODE%"
+    exit /b 0
+)
+
+set "CANDIDATE_NODE=%ProgramFiles%\nodejs\gnode.exe"
+if exist "%CANDIDATE_NODE%" (
+    set "CNCJS_NODE_EXE=%CANDIDATE_NODE%"
+    exit /b 0
+)
+
+where node >nul 2>nul
+if not errorlevel 1 (
+    set "CNCJS_NODE_EXE=node"
+    exit /b 0
+)
+
+exit /b 1
 
 :FindLanIp
 set "LAN_IP="
@@ -102,7 +141,7 @@ set "WAIT_SECONDS=%~2"
 for /l %%S in (1,1,%WAIT_SECONDS%) do (
     powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $r = Invoke-WebRequest -UseBasicParsing '%WAIT_URL%' -TimeoutSec 2; if ($r.StatusCode -ge 200 -and $r.StatusCode -lt 300) { exit 0 } } catch { exit 1 }"
     if not errorlevel 1 exit /b 0
-    timeout /t 1 /nobreak >nul
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 1"
 )
 exit /b 1
 
