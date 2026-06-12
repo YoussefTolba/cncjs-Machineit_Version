@@ -10,7 +10,6 @@
     step: Number(localStorage.getItem('cncjsPendantStep') || 1),
     connected: false,
     probeMode: localStorage.getItem('cncjsPendantProbeMode') || 'outer',
-    autolevelTab: localStorage.getItem('cncjsPendantAutolevelTab') || 'compensation',
     autolevelSettings: {},
     customCommands: [],
     gcodeLoaded: false,
@@ -648,17 +647,6 @@
     });
   }
 
-  function updateAutolevelTab(tab) {
-    state.autolevelTab = tab || state.autolevelTab;
-    localStorage.setItem('cncjsPendantAutolevelTab', state.autolevelTab);
-    Array.prototype.slice.call(document.querySelectorAll('[data-autolevel-tab]')).forEach(function (button) {
-      button.classList.toggle('active', button.getAttribute('data-autolevel-tab') === state.autolevelTab);
-    });
-    if ($('autolevelCompensation')) {
-      $('autolevelCompensation').classList.toggle('hidden', state.autolevelTab !== 'compensation');
-    }
-  }
-
   function renderSpindleState() {
     if ($('spindleM3')) {
       $('spindleM3').classList.toggle('active', state.spindleState === 'M3');
@@ -1172,7 +1160,6 @@
     var probeMode = button.getAttribute('data-probe-mode');
     var probeType = button.getAttribute('data-probe-type');
     var probeArg = button.getAttribute('data-probe-arg');
-    var autolevelTab = button.getAttribute('data-autolevel-tab');
     var autolevelAction = button.getAttribute('data-autolevel-action');
     var customCommand = button.getAttribute('data-custom-command');
     var spindleCommand = button.getAttribute('data-spindle');
@@ -1188,8 +1175,6 @@
       selectStepByDelta(Number(stepDelta));
     } else if (probeMode) {
       updateProbeMode(probeMode);
-    } else if (autolevelTab) {
-      updateAutolevelTab(autolevelTab);
     } else if (autolevelAction) {
       runAutolevelAction(autolevelAction);
     } else if (probeType) {
@@ -1251,7 +1236,6 @@
   renderProbeButtons();
   applyProbeSettingsToInputs();
   updateProbeMode(state.probeMode);
-  updateAutolevelTab(state.autolevelTab);
   renderMeshState();
   renderSkewState();
   $('spindleSpeed').value = String(state.spindleSpeed);
